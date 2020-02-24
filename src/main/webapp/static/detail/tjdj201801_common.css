@@ -1,0 +1,205 @@
+* {
+	margin:0px;
+	padding:0px;
+}
+body {
+	font-family:"微软雅黑", "宋体", "黑体";
+	color:#000000;
+	font-size:12px;
+}
+a, a:hover {
+	text-decoration:none;
+}
+ul, li {
+	list-style:none;
+}
+img {
+	border:0px;
+}
+.Title_green:link,.Title_green:visited,.Title_green:active {
+	color:#094;
+}
+.Title_green:hover {
+	text-decoration:underline;
+}
+.Title_gray:link,.Title_gray:visited,.Title_gray:active {
+	color:#777;
+}
+.Title_gray:hover {
+	color:#094; 
+}
+.Title_list:link,.Title_list:visited,.Title_list:active {
+	color:#000;
+}
+.Title_list:hover {
+	color:#094;
+}
+.more:link,.more:visited,.more:active {
+	color:#094;
+}
+.more:hover {
+	color:#56d468;
+}
+/*#MainBox {
+	width:1100px;
+	margin:0 auto;
+}
+.mainBox {
+	width:1100px;
+	margin-bottom:20px;
+	overflow:hidden;
+	clear:both;
+}*/
+#MainBox {
+	width:1200px;
+	margin:0 auto;
+}
+.mainBox {
+	width:1200px;
+	margin-bottom:20px;
+	overflow:hidden;
+	clear:both;
+}
+#Topheader {
+	width:100%;
+	height:80px;
+}
+#Topheader #logo {
+	float:left;
+	margin:20px 0px 0px 0px;
+	display:inline;
+}
+#Topheader #RightBtn {
+	float:right;
+	font-size:12px;
+	margin:20px 0px 0px 0px;
+	display:inline;
+	font-family:"宋体", "黑体", "微软雅黑";
+}
+#Topheader #RightLink p {
+	line-height:40px;
+}
+#Topheader #RightLink .lang {
+	float:right;
+	font-family:"微软雅黑", "宋体", "黑体";
+	color:#777;
+}
+
+
+#NavBox {
+	width:100%;
+	height:60px;
+	background:url(tjdj201801_navbg.jpg) no-repeat top center;
+}
+/*#nav {
+	width:1100px;
+	height:60px;
+	margin:0 auto;
+}*/
+#nav {
+	width:1200px;
+	height:60px;
+	margin:0 auto;
+}
+#nav li{
+	float:left;
+	width:135px;
+	height:60px;
+	line-height:60px;
+	text-align:center;
+	font-size:18px;
+	color:#fff;
+	background:url(tjdj201801_navicon.png) no-repeat center right;
+}
+#nav li a{
+	color:#fff;
+}
+#nav li a:hover {
+	color:#ffeb00;
+}
+
+#Sub_botMapBox {
+	width:100%;
+	height:210px;
+	margin:30px 0px;
+	background:#009944;
+	clear:both;
+}
+#Sub_botMapBox #Sub_botMap {
+	width:1000px;
+	height:200px;
+	margin:0 auto;
+}
+#Sub_botMapBox #Sub_botMap dl {
+	float:left;
+	width:165px;
+	height:180px;
+	margin:15px 0px 0px 0px;
+	display:inline;
+	border-right:solid 1px #2aa962;
+}
+#Sub_botMapBox #Sub_botMap dl dt {
+	float:left;
+	width:100px;
+	height:30px;
+	font-size:14px;
+	margin-left:50px;
+	display:inline;
+}
+#Sub_botMapBox #Sub_botMap dl dt a {
+	color:#fff;
+}
+#Sub_botMapBox #Sub_botMap dl dt a:hover {
+	color:#fff;
+	text-decoration:underline;
+}
+#Sub_botMapBox #Sub_botMap dl dd {
+	float:left;
+	width:100px;
+	height:25px;
+	line-height:25px;
+	margin-left:50px;
+	display:inline;
+}
+#Sub_botMapBox #Sub_botMap dl dd a {
+	color:#b4ebce;
+}
+#Sub_botMapBox #Sub_botMap dl dd a:hover {
+	color:#fff;
+}
+
+.footer {
+  width: 100%;
+  height: 174px;
+  padding-top: 28px;
+  background: #fff;
+  border-top: 1px solid #ddd;
+}
+.footer .qr-code {
+  text-align: center;
+  width: 92px;
+  margin-left: 346px;
+  float: left;
+}
+.footer .qr-code img {
+  display: block;
+  width: 92px;
+  height: 92px;
+  margin-bottom: 4px;
+}
+.footer .qr-code p {
+  font-size: 12px;
+  color: #333333;
+}
+.footer .footer-content {
+  margin-left: 14px;
+  float: left;
+}
+.footer .footer-content p {
+  text-align: left;
+  font-size: 14px;
+  color: #333333;
+  line-height: 26px;
+}
+
+	

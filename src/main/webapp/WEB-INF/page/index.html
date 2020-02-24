@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">后台管理</div>
+
+        <@shiro.authenticated>
+                <ul class="layui-nav layui-layout-right">
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                            ${Session.userInfo.name}
+                        </a>
+                        <dl class="layui-nav-child">
+<!--                            <dd><a href="">基本资料</a></dd>
+                            <dd><a href="">修改密码</a></dd>-->
+                            <dd><a href="/user/logout">退出</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+        </@shiro.authenticated>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+
+
+                    <#if Session.userInfo.roles??>
+                        <#list Session.userInfo.roles as role>
+                           <#if role.menus??>
+                                <#list role.menus as menu>
+                <li class="layui-nav-item layui-nav-itemed">
+                                         <a class="" href="javaScript:void(0)">${menu.menuname!} </a>
+                                        <#if menu.children??>
+                                                <#list menu.children as chMenu>
+                                                        <#if chMenu.type==0>
+                                                            <dl class="layui-nav-child">
+                                                                <dd><a href="${chMenu.url!}" target="iframe">${chMenu.menuname!}</a></dd>
+                                                            </dl>
+                                                        </#if>
+                                                </#list>
+                                        </#if>
+               </li>
+                                </#list>
+                           </#if>
+                        </#list>
+                    </#if>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <iframe style="width: 100%;height: 100%"  id="iframe" name="iframe" src="/user/userList.html">
+
+        </iframe>
+    </div>
+</div>
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var $ = layui.jquery;
+</script>
+</html>

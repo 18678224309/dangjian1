@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
+</head>
+<body>
+<div class="layui-row" style="height: 50px;">
+
+    <form class="layui-form">
+        <div class="layui-col-md3">
+            <div class="layui-form-item" >
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-block">
+                    <input type="text" name="title"  id="title" placeholder="请输入标题" autocomplete="off" class="layui-input" >
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-form-item">
+                <label class="layui-form-label">单行选择框</label>
+                <div class="layui-input-block">
+                    <select name="type"  lay-filter="type" id="type">
+                        <option value="" selected="">请选择....</option>
+                        <option value="1">纪检工作</option>
+                        <option value="2">组织工作</option>
+                        <option value="3">宣传工作</option>
+                        <option value="4">统战工作</option>
+                        <option value="5">政法工作</option>
+                        <option value="6">群团工作</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md3">
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
+<script type="text/html" id="barDemo">
+    <@shiro.hasPermission name="journalismDelete">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </@shiro.hasPermission>
+
+    <@shiro.hasPermission name="journalismUpdate">
+    <a class="layui-btn layui-btn-checked layui-btn-xs" lay-event="edit">编辑</a>
+    </@shiro.hasPermission>
+
+    <@shiro.hasPermission name="journalismUpdate">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="hot">热点</a>
+    </@shiro.hasPermission>
+
+</script>
+
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var table=layui.table;
+    var $=layui.jquery;
+    var form=layui.form;
+    var options={
+        elem: '#test'
+        ,url:'/journalism/journalismList'
+        ,where: {"type": undefined, "title":undefined}
+        ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+        ,defaultToolbar: []
+        ,title: '新闻列表'
+        ,cols: [[
+            {field:'id', title:'ID', width:80}
+            ,{field:'title', title:'标题', width:190}
+            ,{field:'auth', title:'作者', width:190}
+            ,{field:'type', title:'所属模块', width:190,templet:function (d) {
+                    switch (d.type) {
+                        case 1:
+                            return "纪检工作";
+                        case 2:
+                            return "组织工作";
+                        case 3:
+                            return "宣传工作";
+                        case 4:
+                            return "统战工作";
+                        case 5:
+                            return "政法工作";
+                        case 6:
+                            return "群团工作";
+                    }
+                }}
+            ,{field:'createtime', title:'更新时间', width:190}
+            ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:200}
+        ]]
+        ,page: true
+        ,parseData:function (res) {
+            return{
+                "count": res.data.total, //解析数据长度
+                "data": res.data.records,
+                "code":res.code
+            }
+        },
+        response:{
+            "statusCode":"200"
+        }
+    };
+    var tableIns=table.render(options);
+
+    //监听行工具事件
+    table.on('tool(test)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+            layer.confirm('确认删除此文章吗？', function(index){
+                layer.close(index);
+                $.post("/journalism/deleteJournalism",{id:data.id},function (res) {
+                    window.location.reload();
+                });
+            });
+        }
+
+        if(obj.event === 'edit'){
+            layer.open({
+                type:2,
+                content:'/journalism/journalismAdd.html'
+                ,offset: 'lt'
+                ,area: ['100%', '100%']
+                , success: function(layero, index){
+                    var body = layer.getChildFrame('body', index);
+                    var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：
+                    iframeWin.setForm(data);
+                }
+            });
+        }
+
+        if(obj.event === 'hot'){
+            layer.confirm('确认提升热点文章吗？', function(index){
+                layer.close(index);
+                $.post("/journalism/updateHot",{id:data.id},function (res) {
+                    alert(res.msg);
+                });
+            });
+        }
+
+    });
+
+    form.on('submit(demo1)', function(data){
+        options.where=data.field;
+        table.reload('test',options);
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
+</script>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jtfu.mapper.UserMapper">
+    
+    <resultMap id="userMap" type="com.jtfu.entity.User">
+        <id property="id" column="uid"></id>
+        <result property="username" column="username"></result>
+        <result property="name" column="name"></result>
+        <result property="password" column="password"></result>
+        <result property="roleid" column="roleid"></result>
+        <result property="examnum" column="examnum"></result>
+        <collection property="roles" ofType="com.jtfu.entity.Role">
+            <id property="id" column="rid"></id>
+            <result property="rolename" column="rolename"></result>
+            <result property="rolenamecn" column="rolenamecn"></result>
+            <collection property="menus" ofType="com.jtfu.entity.Menu">
+                <id property="id" column="mid"></id>
+                <result property="menuname" column="menuname"></result>
+                <result property="url" column="url"></result>
+                <result property="res" column="res"></result>
+                <result property="parentid" column="parentid"></result>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <select id="findByUsername" resultMap="userMap">
+       SELECT
+       u.id uid,username,name,password,sex,age,phone,u.roleid,address,imgurl,delflag,examnum,
+       r.id rid,rolename,rolenamecn,
+       m.id mid,menuname,url,res,parentid
+      FROM user u
+        INNER JOIN user_role ur on ur.userid = u.id
+        INNER JOIN role r on r.id = ur.roleid
+        INNER JOIN role_menu rm on rm.roleid = r.id
+        INNER JOIN menu m on rm.menuid = m.id
+      WHERE u.username = #{username} and m.parentid=0
+      <if test="password!=null">
+          and u.password= #{password}
+      </if>
+    </select>
+
+</mapper>

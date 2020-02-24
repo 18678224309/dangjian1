@@ -1,0 +1,57 @@
+(function(){
+	var $box = $('.img-box-content');
+	$box.each(function(){
+		var $this = $(this);
+		var $num = $this.find('a').length;
+		$this.next().html($this.find('a').first().find('img').attr('alt'));
+		if($num>1){
+			var n = $this.width();
+			var $w = $this.width()*($num+2);
+			var timer;
+			var moving;
+			var index=1;
+			$this.width($w);
+			var first = $this.find('a').first().clone();
+			var last = $this.find('a').last().clone();
+			$this.append(first);
+			$this.prepend(last).css({left : -n});
+			$this.find('a').width(n);
+			$this.parent().append('<a href="javascript:;" class="slider-small-btn slider-small-btn-left pos-abs"></a><a href="javascript:;" class="slider-small-btn slider-small-btn-right pos-abs"></a>');
+			function move(x){
+				moving = true;
+				var xx = x==0?-n : n;
+				if(x==0){
+					index++
+				}
+				else{
+					index--
+				}
+				var $left = $this.position().left;
+				$this.animate({left : $left+xx},400,function(){
+					if($this.position().left==0){
+						$this.css({left:n*$num*-1});
+						index = $num;
+					}
+					if($this.position().left==n*($num+1)*-1){
+						$this.css({left:-n});
+						index =1;
+					}
+					moving = false;
+					$this.next().html($this.find('a').eq(index).find('img').attr('alt'));
+				});
+			}
+			$this.parent().find('.slider-small-btn-left').click(function(){
+				if(moving){
+					return
+				}
+				move(1);
+			}).next().click(function(){
+				if(moving){
+					return
+				}
+				move(0);
+			});
+		}
+
+	});
+})();

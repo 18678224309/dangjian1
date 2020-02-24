@@ -1,0 +1,156 @@
+.banner {
+	position: relative;
+	background-image: url(../img/banner.png);
+	background-position: top center;
+	width: 680px;
+	height: 408px;
+	overflow: hidden;
+}
+
+.banner .wrapper {
+	position: relative;
+	margin: auto;
+	width: 680px;
+	height: 408px;
+	overflow: hidden;
+}
+
+.banner #map {
+	position: absolute;
+	left: 85px;
+	top: 5px;
+	z-index: 2;
+}
+
+.banner #small_map {
+	position: absolute;
+	left: 100px;
+	top: 75px;
+	z-index: 1;
+}
+
+.banner .closeBtn {
+	width: 15px;
+	height: 15px;
+	position: absolute;
+	background-image: url(../img/closeBtn.png);
+	top: 0;
+	right: 20px;
+	cursor: pointer;
+}
+
+.banner .links {
+	position: absolute;
+	width: 475px;
+	left: 650px;
+	top: 110px;
+	z-index: 3;
+}
+
+.banner .links h2 {
+	font-size: 30px;
+	color: #fff;
+	font-weight: bold;
+	padding-bottom: 13px;
+	border-bottom: 1px solid #fff;
+	margin-bottom: 28px;
+}
+
+.banner .links li {
+	width: 75px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 16px;
+	text-align: center;
+	cursor: pointer;
+	float: left;
+	margin-bottom: 10px;
+	margin-right: 25px;
+}
+
+.banner .links li.active,
+.banner .links li:hover {
+	background-color: #fd9c17;
+	color: #fff;
+}
+
+.layui-layer {
+	top: 100px !important;
+	margin-left: -200px !important;
+}
+
+.window {
+	width: 250px;
+	height: 170px;
+	background: #008ae1;
+	position: relative;
+}
+
+.window .window_top {
+	height: 40px;
+	color: #ffffff;
+	margin-left: 17px;
+	width: 200px;
+}
+
+.window .window_top p {
+	font-size: 16px;
+	line-height: 40px;
+	width: 220px;
+	border-bottom: 1px solid #8fd4ff;
+}
+
+.window .window_top span {
+	font-size: 12px;
+	background: #ffffff;
+	margin-left: 35px;
+	padding: 1px 5px;
+}
+
+.window .window_top a {
+	color: #000;
+}
+
+.window .close {
+	position: absolute;
+	right: 7px;
+	top: 9px;
+	cursor: pointer;
+}
+
+.window .window_connet {
+	width: 220px;
+	height: 120px;
+	margin-left: 17px;
+	overflow: scroll;
+	overflow-x: hidden;
+	margin-top: 5px;
+	color: #fff;
+	font-size: 14px;
+}
+
+.window .window_connet p {
+	line-height: 30px;
+	color: #ffffff;
+	padding-left: 5px;
+	cursor: pointer;
+}
+
+.window .window_connet p:hover {
+	background-color: #fd9c17;
+	color: #fff;
+}
+
+.window .window_connet p a {
+	color: #ffffff;
+}
+
+.window .closeBtn {
+	width: 15px;
+	height: 15px;
+	position: absolute;
+	background-image: url(../img/closeBtn.png);
+	top: 10px;
+	right: 14px;
+	cursor: pointer;
+}

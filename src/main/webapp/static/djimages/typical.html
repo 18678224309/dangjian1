@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!-- saved from url=(0071)https://weishishi.poteviohealth.com/resources/pioneertjzzb/typical.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>社区微实事工作室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        ol, ul {
+            list-style: none;
+        }
+
+        a:link, a:visited, a:hover, a:active {
+            color: black;
+            text-decoration: none;
+        }
+
+        #box {
+            width: 381px;
+            height: 404px;
+            border: 1px solid #e7e7e7;
+        }
+        .titBox{
+            width: 100%;
+            height: 48px;
+            background: url("./img/bg.jpg") no-repeat left;
+        }
+        h1 {
+            font: normal 22px/220% "微软雅黑";
+            color: #fff;
+            width: 230px;
+            float: left;
+            margin: 0 0 0 16px;
+        }
+        .newsBox{
+            width: 352px;
+            margin-left: 16px;
+            height: 342px;
+            overflow: hidden;
+            float: left;
+            padding: 16px 0 0 0;
+            font: normal 16px/180% "微软雅黑";
+        }
+
+
+        .newsList .item {
+            position: relative;
+            height: 100px;
+            margin-bottom: 14px;
+            width: 100%;
+        }
+
+        .newsList .item .thumbnail {
+            width: 150px;
+            height: 100px;
+        }
+
+        .newsList .item .thumbnail img {
+            width: 150px;
+            height: 100px;
+        }
+
+        .newsList .item .text {
+            position: absolute;
+            width: 195px;
+            height: 100px;
+            right: 0;
+            top: 0;
+            font-size: 15px;
+        }
+
+        .newsList .item .text .tit {
+            color: #232323;
+            line-height: 26px;
+        }
+
+        .newsList .item .text .createTime {
+            position: absolute;
+            bottom: 5px;
+            color: #969696;
+        }
+    </style>
+</head>
+<body>
+<div id="box">
+    <div class="titBox">
+        <h1>“微实事”工作室</h1>
+    </div>
+    <div class="newsBox">
+        <ul class="newsList"><li class="item"><a href="https://weishishi.poteviohealth.com/resources/pioneertjzzb/detail.html?id=2119&amp;dateString=2020-01-03" target="_blank"><div class="thumbnail"><img src="./20200103082656-14.jpg"></div><div class="text"><p class="tit">服务到家，服务到心</p><p class="createTime">2020-01-03</p></div></a></li><li class="item"><a href="https://weishishi.poteviohealth.com/resources/pioneertjzzb/detail.html?id=2118&amp;dateString=2020-01-03" target="_blank"><div class="thumbnail"><img src="./20200103075825-4.jpg"></div><div class="text"><p class="tit">服务“耐心”群众舒心</p><p class="createTime">2020-01-03</p></div></a></li><li class="item"><a href="https://weishishi.poteviohealth.com/resources/pioneertjzzb/detail.html?id=2117&amp;dateString=2019-11-26" target="_blank"><div class="thumbnail"><img src="./713b92aa50f85492cf0d4eece9f2f171 (1).jpg-mobile"></div><div class="text"><p class="tit">以点带面润物无声</p><p class="createTime">2019-11-26</p></div></a></li></ul>
+    </div>
+
+</div>
+<script type="text/javascript" src="./jquery.1.7.2.min.js.下载"></script>
+<script>
+    $(document).ready(function () {
+       <!-- var url = 'http://123.56.196.46:7180/zmdxapi/getAllListPage?start=0&length=3&type=3';-->
+		var url = 'https://weishishi.poteviohealth.com/api/weixin/getProductListByTag.jhtml?start=0&count=3&tag=24';
+        $.ajax({
+            url:url,
+            success:function(res){
+                if (res && res.length > 0) {
+                    console.log(res);
+                    var str = "";
+                    for (var i = 0, len = res.length; i < len; i++) {
+                        var curData = res[i];
+                        var imgStr = "";
+                        var curImg = curData.image;
+                        var bt = shortStr(curData.fullName);
+                        var date = shortTime(curData.formatCreateDate);
+                        if (curImg) {
+                            imgStr += "<img src= '" + curImg + "' />"
+                        } else {
+                            imgStr += "<img src='./img/default.png'/>"
+                        }
+						 
+                        str += "<li class='item'><a href='detail.html?id=" + curData.id +"&dateString=" + curData.formatCreateDate + "' target='_blank'>" +
+                            "<div class='thumbnail'>" +
+                            imgStr +
+                            "</div>" +
+                            "<div class='text'>" +
+                            "<p class='tit'>" + bt + "</p>" +
+                            "<p class='createTime'>" + date + "</p>" +
+                            "</div>" +
+                            "</a></li>"
+                    }
+                    $('.newsList').html(str);
+                }
+            },
+            error:function(){
+                console.log('error')
+            }
+        })
+    });
+
+    //限制字数
+    function shortStr(str){
+        if(str.length>=18){
+            var str1 = str.slice(0,18);
+            str1 = str1 +"...";
+        }else{
+            str1 = str;
+        }
+        return str1;
+    }
+    //简化时间
+    function shortTime(str){
+        var strArr= str.split(' ');
+        return strArr[0]
+    }
+</script>
+
+</body></html>

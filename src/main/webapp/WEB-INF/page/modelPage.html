@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0051)http://www.tianjindangjian.gov.cn/ncdj/pages/1.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<!--<base target="_self">--><base href="." target="_self">
+<link href="/static/detail/tjdj201801_common.css" rel="stylesheet" type="text/css">
+<link href="/static/detail/tjdj201801_new.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css" media="all">
+
+</head>
+
+<body>
+
+	<div class="main">
+		<div class="container">
+			<div class="clearfix mb-20">
+				<div class="items" id="items">
+
+				</div>
+
+				<div id="page">
+
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+	var laypage = layui.laypage;
+	var $=layui.jquery;
+	var type="${type}";
+	var params={limit:10,page:0,type:type};
+	$(function () {
+		getJourByType();
+	});
+	function getJourByType(){
+		$.get('/journalism/journalismList',params,function (r) {
+			var records = r.data.records;
+			for(var i=0;i<records.length;i++){
+				var item=records[i];
+				var items=$("#items");
+				items.append('  <div class="item clearfix">\n' +
+						'<div class="fl w100">\n' +
+						'             <a  href="/journalism/detail.html?id='+item.id+'" target="_blank">'+item.title+'</a>\n' +
+						'                 <p></p>\n' +
+						'              <span class="date">'+item.createtime+'</span>\n' +
+						'          </div>\n' +
+						'     </div>');
+			}
+			//执行一个laypage实例
+			laypage.render({
+				elem: 'page' //注意，这里的 test1 是 ID，不用加 # 号
+				,count: r.data.total //数据总数，从服务端得到
+				,layout: [ 'prev', 'page', 'next','count',]
+				,jump: function(obj, first){
+					params.limit=obj.limit;
+					params.page=obj.curr;
+					if(!first){
+						getJourByType();
+					}
+				}
+			});
+		});
+	}
+</script>
+</html>

@@ -1,0 +1,782 @@
+/**
+ * web客户端通信模块
+ * @type {{check, renderServices, getServices, openService, getCurrentStatus}}
+ */
+var clientConnector = (function () {
+    var is_connect = false;//客户端是否已连接
+    var is_online = false;//客户端是否建立好隧道
+    var is_nc_online = false;//NC是否建立好隧道
+    var is_login = false;//客户端是否已登录
+    var start_port = 36000;
+    var end_port = 36009;
+    var server_port = 36000;
+    var finished_check_num = 0;
+    var status = "";//上一次getStatus获取的状态数据
+    var services = "";//业务列表
+    var user_lang_id = $.cookie("user_lang_id") || 2;//界面语言类型
+    var api_host = "http://127.0.0.1";
+    var vpn_host = "";
+    var vpn_port = "";
+    var isRender = false;//服务列表是否已渲染
+    var has_jump = false;//是否已自动跳转
+    var getStatusFailCount = 0;//获取系统状态的请求计数
+    var getStatusFailLimit = 12;//获取系统状态时判定失败的阈值
+    var initialized = false;//隧道是否初始化完成
+    var client_mode = "client";
+    var mac_address = [];//网卡地址
+    var ie_version = 0;
+
+    function init(mode) {
+        ie_version = detectIE();
+        client_mode = mode;
+        check();
+    }
+
+    function lazy_open(url,wait) {
+        setTimeout(function () {
+            window.location.href = url;
+        },wait);
+    }
+
+    function detectIE() {
+        var ua = window.navigator.userAgent;
+
+        var msie = ua.indexOf('MSIE ');
+        if (msie > 0) {
+            // IE 10 or older => return version number
+            return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+        }
+
+        var trident = ua.indexOf('Trident/');
+        if (trident > 0) {
+            // IE 11 => return version number
+            var rv = ua.indexOf('rv:');
+            return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+        }
+
+        var edge = ua.indexOf('Edge/');
+        if (edge > 0) {
+            // Edge (IE 12+) => return version number
+            return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+        }
+
+        // other browser
+        return false;
+    }
+
+    /**
+     * 友好的size
+     * @param bytes
+     * @param si
+     * @returns {string}
+     */
+    function humanFileSize(bytes, si) {
+        bytes = parseInt(bytes) || 0;
+        if (bytes === 0) {
+            return "";
+        }
+        var thresh = si ? 1024 : 1024;
+        if (Math.abs(bytes) < thresh) {
+            return bytes + ' B';
+        }
+        var units = si
+            ? ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+            : ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        var u = -1;
+        do {
+            bytes /= thresh;
+            ++u;
+        } while (Math.abs(bytes) >= thresh && u < units.length - 1);
+        return bytes.toFixed(1) + ' ' + units[u];
+    }
+
+    /**
+     * 点开一个业务
+     * @param e
+     * @param service_id
+     * @returns {boolean}
+     */
+    function openService(e, service_id) {
+        var service = _.find(services, {id: parseInt(service_id)});
+        if (service.stype !== 1 && service.stype !== 2) {
+            alert(client_lang.tips1);
+            return false;
+        }
+        if (service) {
+            //单点登录
+            if (service.sso) {
+                window.open(service.sso.submit_url);
+                return true;
+            }
+            window.open(service.url);
+        }
+        return true;
+    }
+
+
+    /**
+     * 切换连接状态
+     */
+    function switchStatus() {
+        if (!is_connect) {
+            lock(client_lang.client_offline);
+            renderStatus();
+            return;
+        } else if (!is_online && initialized) {
+            lock(client_lang.client_is_offline);
+            renderStatus();
+            return;
+        } else if (is_connect && is_online) {
+            unlock();
+        }
+        renderStatus();
+    }
+
+    /**
+     * loading
+     * @param message
+     */
+    function loading(message) {
+        $("#client-loading-mask").show();
+        if (message) {
+            $("#client-loading-message").html(message);
+        }
+        loadingMask = $("#client-loading-mask").modal({
+            escapeClose: false,
+            clickClose: false,
+            showClose: false
+        });
+    }
+
+    /**
+     * 取消loading
+     */
+    function unLoading() {
+        $.modal.close();
+    }
+
+    /**
+     * 锁屏
+     * @param message
+     */
+    function lock(message) {
+        $("#client-mask").show();
+        if (message) {
+            $("#client-error-message").html(message + "&nbsp;&nbsp;<a href='javascript:clientConnector.logout();'>退出</a>");
+        }
+        $("#client-mask").modal({
+            escapeClose: false,
+            clickClose: false,
+            showClose: false
+        });
+    }
+
+    /**
+     * 取消锁屏
+     */
+    function unlock() {
+        $.modal.close();
+    }
+
+    /**
+     * 获取当前状态
+     * @returns {string}
+     */
+    function getCurrentStatus() {
+        return status;
+    }
+
+    /**
+     * 渲染当前状态信息
+     */
+    function renderStatus() {
+        if (is_connect) {
+            $("#client_status").html(client_lang.client_online);
+            //检查隧道连接状态
+            if (is_online) {
+                $("#client_status").html(client_lang.vpn_online);
+                //检查NC连接状态
+                if (status.tunnel_nc.ip) {
+                    $("#client_status").html("NC-IP:" + status.tunnel_nc.ip);
+                }
+            } else {
+                $("#client_status").html(client_lang.vpn_offline);
+            }
+        } else {
+            $("#client_status").html(client_lang.client_offline);
+        }
+    }
+
+
+    /**
+     * 获取业务列表
+     * @returns {string}
+     */
+    function getServices() {
+        return services;
+    }
+
+    /**
+     * 与客户端建立连接时
+     */
+    function onConnect() {
+        //console.log("connect to client succeeded");
+        // alert("on connect succeeded");
+        //检查主机硬件绑定
+        if (mac_address && mac_address.length > 0 && user_info.host_bind && user_info.host_bind.length > 0) {
+            bind_address = _.intersection(mac_address, user_info.host_bind);
+            if (bind_address.length === 0) {
+                lock(client_lang.bind_host_only);
+                return;
+            }
+        }
+
+        if (client_mode === "welcome") {//登录入口，检测客户端是否已登录
+            setInterval(function () {
+                getStatus().done(function (data) {
+                    if (data.error !== undefined && parseInt(data.error.code)) {
+                        //获取状态失败
+                        is_online = false;
+                        lock(client_lang.client_get_status_failed);
+                        switchStatus();
+                        //console.log(data.error.message);
+                    } else {
+                        //获取状态成功
+                        if (data.result.status === "online" && data.result.vpn_addr.host === window.vpn_host
+                            && data.result.vpn_addr.port === window.vpn_port && data.result.vpn_user.ticket
+                        ) {
+                            if (window.location.pathname.indexOf("/welcome2019.php") === 0 || window.location.pathname.indexOf("/welcome.php") === 0) {
+                                $.cookie("gw_user_ticket", null);
+                                $.cookie("r_ticket", data.result.vpn_user.ticket);
+                                if (data.result.vpn_user !== undefined){
+                                    if (data.result.vpn_user.username !== undefined) {
+                                        $.cookie("user_name", data.result.vpn_user.username);
+                                    }
+                                    if (data.result.vpn_user.name !== undefined) {
+                                        $.cookie("user_name", data.result.vpn_user.name);
+                                    }
+                                }
+                                $.cookie("user_id", data.result.vpn_user.uid);
+                                $.cookie("extra_token", data.result.extra_token);
+                                window.location.pathname = "/client.php";
+                            }
+                        }
+                    }
+                });
+            },3000);
+            return;
+        }
+
+        if (client_mode === "client") {//web client 主页
+            getStatus().then(function () {
+                if (!is_online) {
+                    //登录
+                    login().done(function () {
+                        return getStatus();
+                    });
+                }
+            });
+            if (!window.get_status_timer) {
+                window.get_status_timer = setInterval(getStatus, 3000);
+            }
+        }
+    }
+
+    function redirectToIndex() {
+        if (window.use_web_client) {
+            window.location.href = "/welcome2019.php";
+        } else {
+            window.location.href = "/welcome.php";
+        }
+    }
+
+    /**
+     * 与客户端连接失败时
+     */
+    function onError() {
+        //与客户端的所有端口连接都失败
+        //console.log("connect to client failed");
+        if (client_mode === "client") {
+            alert(client_lang.connect_to_client_failed);
+            redirectToIndex();
+        }
+    }
+
+    function logout_silent() {
+        var url = api_host + ":" + server_port + "/_inner/vpnservice?method=logout";
+        $.ajax({
+            async: true,
+            type: "GET",
+            url: url,
+            dataType: ie_version ? "jsonp" : "json",
+            success: function (data) {
+                //console.log("logout succeeded");
+            },
+            error: function (data) {
+                //console.log("logout failed");
+            }
+        });
+    }
+
+    function logout() {
+        var url = api_host + ":" + server_port + "/_inner/vpnservice?method=logout";
+        $.ajax({
+            async: true,
+            type: "GET",
+            url: url,
+            dataType: ie_version ? "jsonp" : "json",
+            success: function (data) {
+                //console.log("logout succeeded");
+            },
+            error: function (data) {
+                //console.log("logout failed");
+            }
+        }).then(function () {
+            window.location.href = "/logout.php";
+        });
+    }
+
+    /**
+     * 生成业务列表html
+     * @param services
+     * @param keyword
+     * @returns {*}
+     */
+    function servicesHtml(services, keyword) {
+        if (services && services.length === 0) return false;
+        //解析出应用组
+        var service_groups = [];
+        var service_group_names = {};
+        var search_services = [];
+        var service_str = "";
+        _.each(services, function (service) {
+            //搜索应用
+            if (keyword && ((service.title && service.title.indexOf(keyword) !== -1) || (service.url && service.url.indexOf(keyword) !== -1))) {
+                search_services.push(service);
+            }
+            if (service.groups && service.groups.length > 0) {
+                _.each(service.groups, function (group) {
+                    if (!_.find(user_info.service_groups, {"id": group.id})) {
+                        return;
+                    }
+                    if (service_groups[group.id] === undefined) {
+                        service_groups[group.id] = {};
+                    }
+                    service_groups[group.id][service.id] = service;
+                    service_group_names[group.id] = group.name;
+                });
+            }
+        });
+        //文字列表
+        service_str += "<div id='service_page_list' style='display:none'>";
+        _.each(services, function (item, key) {
+            var service_id = item.id;
+            var service_title = item.title;
+            service_str += "<div class=\"object\" id=\"object_" + service_id + "\">";
+            service_str += "<div class=\"objicon\"><img class=\"ico\" style=\"cursor:pointer\" src=\"admin/images/pic/" + service_id + ".png\" width=\"64\" height=\"64\" alt=\"" + service_title + "\" onclick=\"clientConnector.openService(event," + service_id + ")\"/></div>";
+            service_str += "<div class=\"objname\"><a href=\"javascript:void(0);\" onclick=\"clientConnector.openService(event," + service_id + ")\">" + service_title + "</a></div>";
+            service_str += "<div class=\"objsend\" id=\"send_" + service_id + "\">" + humanFileSize(item.flow_up_bytes) + "</div>";
+            service_str += "<div class=\"objreceive\" id=\"rev_" + service_id + "\">" + humanFileSize(item.flow_down_bytes) + "</div>";
+            service_str += "<div class=\"disable\"><img src=\"images/disable.gif\" width=\"22\" height=\"17\" id=\"error_" + service_id + "\" /></div></div>";
+        });
+        service_str += "<div class=\"clear\">&nbsp;</div></div>";
+
+        //搜索结果列表
+        service_str += "<div id='service_search_list' style='display:none'>";
+        _.each(search_services, function (item, key) {
+            var service_id = item.id;
+            var service_title = item.title;
+            service_str += "<div class=\"object\" id=\"object_" + service_id + "\">";
+            service_str += "<div class=\"objicon\"><img class=\"ico\" style=\"cursor:pointer\" src=\"admin/images/pic/" + service_id + ".png\" width=\"64\" height=\"64\" alt=\"" + service_title + "\" onclick=\"clientConnector.openService(event," + service_id + ")\"/></div>";
+            service_str += "<div class=\"objname\"><a href=\"javascript:void(0);\" onclick=\"clientConnector.openService(event," + service_id + ")\">" + service_title + "</a></div>";
+            service_str += "<div class=\"objsend\" id=\"send_" + service_id + "\">" + humanFileSize(item.flow_up_bytes) + "</div>";
+            service_str += "<div class=\"objreceive\" id=\"rev_" + service_id + "\">" + humanFileSize(item.flow_down_bytes) + "</div>";
+            service_str += "<div class=\"disable\"><img src=\"images/disable.gif\" width=\"22\" height=\"17\" id=\"error_" + service_id + "\" /></div></div>";
+        });
+        service_str += "<div class=\"clear\">&nbsp;</div></div>";
+
+        //带图标列表
+        service_str += "<div id='service_page_0'>";
+        _.each(services, function (item, key) {
+            //跳过在应用组中的数据
+            if (item.groups && item.groups.length > 0) {
+                return;
+            }
+            var service_id = item.id;
+            var service_title = item.title;
+            service_str += "<div class=\"object\" id=\"object_" + service_id + "\">";
+            service_str += "<div class=\"objicon\"><img class=\"ico\" style=\"cursor:pointer\" src=\"admin/images/pic/" + service_id + ".png\" width=\"64\" height=\"64\" alt=\"" + service_title + "\" onclick=\"clientConnector.openService(event," + service_id + ")\"/></div>";
+            service_str += "<div class=\"objname\"><a href=\"javascript:void(0);\" onclick=\"clientConnector.openService(event," + service_id + ")\">" + service_title + "</a></div>";
+            service_str += "<div class=\"objsend\" id=\"send_" + service_id + "\">" + humanFileSize(item.flow_up_bytes) + "</div>";
+            service_str += "<div class=\"objreceive\" id=\"rev_" + service_id + "\">" + humanFileSize(item.flow_down_bytes) + "</div>";
+            service_str += "<div class=\"disable\"><img src=\"images/disable.gif\" width=\"22\" height=\"17\" id=\"error_" + service_id + "\" /></div></div>";
+        });
+
+        //应用组
+        _.each(service_group_names, function (service_group_name, service_group_id) {
+            service_str += "<div class=\"object\" id=\"object_s" + service_group_id + "\">";
+            service_str += "<div class=\"objicon\"><img class=\"ico\" style=\"cursor:pointer\" src=\"admin/images/sgroup.png\" width=\"64\" height=\"64\" alt=\"" + service_group_name + "\" onclick=\"show_group_service(" + service_group_id + ",'" + service_group_name + "')\"/></div>";
+            service_str += "<div class=\"objname\"><a href=\"javascript:void(0);\" onclick=\"show_group_service(" + service_group_id + ",'" + service_group_name + "')\">" + service_group_name + "</a></div>";
+            service_str += "<div class=\"objsend\"></div>";
+            service_str += "<div class=\"objreceive\"></div>";
+            service_str += "<div class=\"disable\">&nbsp;</div></div>";
+        });
+        service_str += "<div class=\"clear\">&nbsp;</div></div>";
+
+        //应用组的应用
+        _.each(service_groups, function (service_group, service_group_id) {
+            service_str += "<div id='service_page_" + service_group_id + "' style='display:none'>";
+            _.each(service_group, function (item, key) {
+                var service_id = item.id;
+                var service_title = item.title;
+                service_str += "<div class=\"object\" id=\"object_" + service_id + "\">";
+                service_str += "<div class=\"objicon\"><img class=\"ico\" style=\"cursor:pointer\" src=\"admin/images/pic/" + service_id + ".png\" width=\"64\" height=\"64\" alt=\"" + service_title + "\" onclick=\"clientConnector.openService(event," + service_id + ")\"/></div>";
+                service_str += "<div class=\"objname\"><a href=\"javascript:void(0);\" onclick=\"clientConnector.openService(event," + service_id + ")\">" + service_title + "</a></div>";
+                service_str += "<div class=\"objsend\" id=\"send_" + service_id + "\">" + humanFileSize(item.flow_up_bytes) + "</div>";
+                service_str += "<div class=\"objreceive\" id=\"rev_" + service_id + "\">" + humanFileSize(item.flow_down_bytes) + "</div>";
+                service_str += "<div class=\"disable\"><img src=\"images/disable.gif\" width=\"22\" height=\"17\" id=\"error_" + service_id + "\" /></div></div>";
+            });
+            service_str += "<div class=\"clear\">&nbsp;</div></div>";
+        });
+
+        return service_str;
+    }
+
+    /**
+     * 渲染业务列表
+     * @param services
+     * @param keyword
+     */
+    function renderServices(services, keyword) {
+        var app_info = "";
+        _.each(services, function (item, key) {
+            app_info += item.id + "@@@" + encodeURI(item.title) + "@@@@";
+        });
+        _setCookie('user_service_list', app_info, 1);
+        var html = servicesHtml(services, keyword);
+        $("#home").empty();
+        $("#home").append(html);
+        for (var i = 0; i <= 500; i++) {
+            if (i % 2 == 0) {
+                $("#home #object_s" + i).addClass("another");
+            }
+            $("#home #object_s" + i).hover(function () {
+                    $(this).addClass("mouseover");
+                },
+                function () {
+                    $(this).removeClass("mouseover");
+                });
+        }
+        for (var i = 0; i <= 500; i++) {
+            if (i % 2 == 0) {
+                $("#home #object_" + i).addClass("another");
+            }
+            $("#home #object_" + i).hover(function () {
+                    $(this).addClass("mouseover");
+                },
+                function () {
+                    $(this).removeClass("mouseover");
+                });
+        }
+        lang_service(user_lang_id);
+        show_main();
+    }
+
+    function formatServices(services) {
+        var services = _.filter(services, function (item) {
+            if (item.clienthidden !== 0 && item.clienthidden !== 2) {
+                //clienthidden,1:mobile;2:pc;3:none;0:all;
+                return false;
+            }
+            if (navigator.platform.indexOf("Linux") > -1) {
+                //Linux客户端只支持NC web业务
+                if ((item.accesstype === 1) && (item.stype === 1 || item.stype === 2)) {
+                    return true;
+                }
+            } else {
+                //过滤非指定类型的业务,accesstype 0:代理；1：NC；5：反向代理；
+                if ((item.accesstype === 0 || item.accesstype === 1 || item.accesstype === 5)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        services = _.map(services, function (item) {
+            item.port = item.tport;
+            item.title = item.name;
+            item.id = item.sid;
+            item.domain = item.sname;
+            item.isAnyPort = false;
+            //处理端口的|语法,处理端口的any语法
+            if (item.port.indexOf("|") !== -1) {
+                item.ports = item.port.split("|");
+                _.each(item.ports, function (val) {
+                    if (val == "any:NA") {
+                        isAnyPort = true;
+                        item.port = "";
+                    }
+                });
+                item.port = item.ports[0].split(":")[1];
+            } else {
+                item.port = item.tport.split(":")[1];
+            }
+            if (item.tport == "any:NA") {
+                isAnyPort = true;
+                item.port = "";
+            }
+
+            //处理服务器名-语法
+            if (item.domain.indexOf("-") !== -1) {
+                item.domain = item.domain.split("-")[0];
+            }
+            //处理服务器名@语法
+            if (item.domain.indexOf("@") !== -1) {
+                item.domain = item.domain.split("@")[0];
+            }
+            if (item.accesstype === 5) {
+                //反向代理
+                item.url = "/rp/" + item.sid + "/";
+            }
+            if (item.accesstype === 0 || item.accesstype === 1) {
+                //代理和NC
+                if (item.stype == 1) {
+                    //http
+                    item.url = "http://" + item.domain + (item.isAnyPort || item.port == "80" ? "" : ":" + item.port) + item.path;
+                }
+                if (item.stype == 2) {
+                    //https
+                    item.url = "https://" + item.domain + (item.isAnyPort || item.port == "443" ? "" : ":" + item.port) + item.path;
+                }
+            }
+            if (item.path === "/" && item.indexpage.indexOf("/") === 0) {
+                item.indexpage = item.indexpage.substring(1);
+            }
+            if (item.indexpage) {
+                item.url += item.indexpage
+            }
+            return item;
+        });
+        return services;
+    }
+
+    /**
+     * 处理状态更新
+     * @param current_status
+     */
+    function resolveStatus(current_status) {
+        status = current_status;
+        services = formatServices(user_info.service);
+        if (!isRender && client_mode === "client") {
+            renderServices(services);
+            isRender = true;
+        }
+        //更新业务流量
+        _.each(current_status.services, function (service) {
+            $("#send_" + service.id).html(humanFileSize(service.flow_up_bytes));
+            $("#rev_" + service.id).html(humanFileSize(service.flow_down_bytes));
+        });
+        var vpn_server_checked = true;
+        if (!current_status.vpn_addr || !current_status.vpn_addr.host || current_status.vpn_addr.host != window.vpn_host || current_status.vpn_addr.port != window.vpn_port) {
+            vpn_server_checked = false;
+        }
+        var user_session_checked = true;
+        if (!current_status.vpn_user || (current_status.vpn_user.uid && $.cookie("user_id") != current_status.vpn_user.uid)) {
+            user_session_checked = false;
+        }
+        if (current_status.status === "online" && current_status.tunnel_nc.ip && $.cookie("user_id") && vpn_server_checked && user_session_checked) {
+            //在线
+            is_online = true;
+            is_login = true;
+            initialized = true;
+
+            setTimeout(function () {
+                unLoading();
+            },3500);
+
+            if (jump_info.type > 0) {
+                //如果已自动跳转，则刷新页面不再自动跳转
+                var web_client_has_jump = $.cookie('web_client_has_jump');
+                if (has_jump || web_client_has_jump === "true") {
+                    return;
+                }
+                // $.cookie('web_client_has_jump', true, {expires: 365, path: '/'});
+                has_jump = true;
+                //用户跳转策略
+                if (jump_info.type == 1) {
+                    //按应用跳转
+
+                    //检查是否有单点登录
+                    if (jump_info.sso) {
+                        lazy_open(jump_info.sso.submit_url,3500);
+                        return;
+                    }
+                    //查找此应用
+                    var service = _.find(services, {"id": parseInt(jump_info.url)});
+                    if (service) {
+                        //跳转到业务地址
+                        lazy_open(service.url,3500);
+                        return;
+                    }
+
+                }
+                if (jump_info.type == 2) {
+                    //按URL跳转
+                    var service_url = jump_info.url;
+                    lazy_open(service_url,3500);
+                    return;
+                    // window.location.href = service_url;
+                }
+            }
+        } else {
+            //离线
+            if (initialized) {
+                is_online = false;
+                lock(client_lang.client_is_offline);
+            } else {
+                getStatusFailCount++;
+                if (getStatusFailCount > getStatusFailLimit) {
+                    initialized = true;
+                }
+            }
+        }
+    }
+
+    function login() {
+        var url = api_host + ":" + server_port + "/_inner/vpnservice?method=login";
+        loading(client_lang.login_loading);
+        $.cookie('web_client_has_jump', null);
+        return $.ajax({
+            async: true,
+            type: "GET",
+            url: url,
+            dataType: ie_version ? "jsonp" : "json",
+            data: {
+                host: vpn_host || window.vpn_host,
+                port: vpn_port || window.vpn_port,
+                user: user_info.user || "",
+                uid: user_info.user_id || "",
+                pass: user_info.pass || "",
+                extra_token: user_info.extra_token || "",
+                ticket: window.ticket || ""
+                // auth:window.auth_server_name
+            },
+            success: function (data) {
+                if (data.error !== undefined && parseInt(data.error.code)) {
+                    //登录失败
+                    is_login = false;
+                    //console.log(data.error.message);
+                    lock(client_lang.client_login_failed);
+                    //console.log("client login failed");
+                } else {
+                    //登录成功
+                    is_login = true;
+                    //console.log("client login succeeded");
+                }
+            },
+            error: function (data) {
+                lock(client_lang.client_login_failed);
+            }
+        });
+    }
+
+    /**
+     * 获取最新连接状态
+     */
+    function getStatus() {
+        if (!is_connect) {
+            return;
+        }
+        if (!initialized) {
+            loading(client_lang.initializing);
+        }
+        var url = api_host + ":" + server_port + "/_inner/vpnservice?method=status";
+        return $.ajax({
+            async: true,
+            type: "GET",
+            url: url,
+            dataType: ie_version ? "jsonp" : "json",
+            success: function (data) {
+                is_connect = true;
+                if (data.error !== undefined && parseInt(data.error.code)) {
+                    //获取状态失败
+                    is_online = false;
+                    lock(client_lang.client_get_status_failed);
+                    switchStatus();
+                    //console.log(data.error.message);
+                } else {
+                    //获取状态成功
+                    resolveStatus(data.result);
+                    switchStatus();
+                }
+            },
+            error: function (data) {
+                is_connect = false;
+                switchStatus();
+                lock(client_lang.client_get_status_failed);
+                initialized = true;
+            }
+        });
+    }
+
+
+    /**
+     * 端口检测
+     */
+    function check() {
+        loading(client_lang.login_loading);
+        port = start_port;
+        while (port <= end_port) {
+            ping(port);
+            port++;
+        }
+    }
+
+    function resolve(rs) {
+        finished_check_num++;
+        if (rs === true && is_connect === false) {
+            //首次连接成功
+            is_connect = true;
+            return onConnect();
+        }
+        if (is_connect === false && finished_check_num === end_port - start_port + 1) {
+            //所有连接失败
+            return onError();
+        }
+    }
+
+    function ping(port) {
+        var url = api_host + ":" + port + "/_inner/vpnservice?method=ping";
+        $.ajax({
+            async: true,
+            type: "GET",
+            url: url,
+            dataType: ie_version ? "jsonp" : "json",
+            success: function (data) {
+                if (data.error === undefined || parseInt(data.error.code) === 0) {
+                    if (data.result.hwaddrs) {
+                        mac_address = data.result.hwaddrs;
+                    }
+                    resolve(true);
+                    server_port = port;
+                }
+            },
+            error: function (data) {
+                resolve(false);
+            }
+        });
+    }
+
+
+    return {
+        init: init,
+        check: check,
+        renderServices: renderServices,
+        getServices: getServices,
+        openService: openService,
+        getCurrentStatus: getCurrentStatus,
+        loading: loading,
+        logout: logout,
+        humanFileSize: humanFileSize,
+        ping: ping
+    }
+})();

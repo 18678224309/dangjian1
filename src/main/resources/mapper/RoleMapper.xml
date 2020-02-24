@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jtfu.mapper.RoleMapper">
+
+
+    <resultMap id="roleMap" type="com.jtfu.entity.Role">
+            <id property="id" column="id"></id>
+            <result property="rolename" column="rolename"></result>
+            <result property="rolenamecn" column="rolenamecn"></result>
+            <collection property="menus" ofType="com.jtfu.entity.Menu">
+                <id property="id" column="mid"></id>
+                <result property="menuname" column="menuname"></result>
+                <result property="parentid" column="parentid"></result>
+            </collection>
+    </resultMap>
+
+    <select id="getRoleByRoleId" resultMap="roleMap">
+        select role.*,menu.id mid,menu.menuname,menu.parentid from role inner join role_menu on role.id=role_menu.roleid inner join menu on role_menu.menuid=menu.id
+        where role.id=#{id}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,291 @@
+var mainArea = null;
+var openMap = false;
+var Banner = function() {
+	this.element = $('.banner');
+	this.mapElement = this.element.find('#map');
+	this.smallMapElement = this.element.find('#small_map');
+	this.init();
+}
+Banner.prototype.init = function() {
+	this.initDom();
+	var self = this;
+
+	this.map = new Map('map', 'big', 550, 400, function(data) {
+		self.clickHandler(data)
+	}, function(data) {
+		self.focusOpen(data)
+	}, function(data) {
+		self.focusClose(data)
+	});
+
+	this.small_map = new Map('small_map', 'small', 250, 250, function(data) {
+		self.clickHandler(data)
+	}, function(data) {
+		self.focusOpen(data)
+	}, function(data) {
+		self.focusClose(data)
+	});
+
+	this.links = new Links(function(data) {
+		self.clickHandler(data)
+	}, function(data) {
+		self.focusOpen(data)
+	}, function(data) {
+		self.focusClose(data)
+	});
+
+	this.modal = new Modal();
+}
+
+Banner.prototype.initDom = function() {
+	var self = this;
+	this.closeMapBtn = $('<i class="closeBtn"></i>').on('click', function() {
+		self.closeMap();
+	})
+	this.smallMapElement.css('opacity', 0).append(this.closeMapBtn)
+}
+
+Banner.prototype.clickHandler = function(data,ev) {
+	if(data.name == '市区') {
+		this.openMap();
+	} else {
+		this.modal.show(data);
+	}
+}
+Banner.prototype.focusOpen = function(data) {
+	if(data.name != '市区') {
+		if(data.type == 'small') {
+			this.openMap();
+		}
+		data.linkInstance.focusOpen();
+		data.pathInstance.focusOpen();
+	}
+}
+Banner.prototype.focusClose = function(data) {
+	if(data.name != '市区') {
+		if(data.type == 'small' && data.type != 'small') {
+			this.closeMap();
+		}
+		data.linkInstance.focusClose();
+		data.pathInstance.focusClose();
+	}
+}
+Banner.prototype.openMap = function() {
+	openMap = true;
+	this.mapElement.stop(true).css({
+		zIndex: 1
+	}).animate({
+		left: 145
+	}, 500)
+	this.smallMapElement.stop(true).css("zIndex", 2).animate({
+		opacity: 1,
+		left: 55
+	}, 500)
+	if(mainArea) {
+		mainArea.focusOpen();
+	}
+}
+Banner.prototype.closeMap = function() {
+	openMap = false;
+	this.mapElement.css("zIndex", 2).animate({
+		left: 85
+	}, 500)
+	this.smallMapElement.css("zIndex", 1).animate({
+		opacity: 0,
+		left: 100
+	}, 500)
+	if(mainArea) {
+		mainArea.focusClose();
+	}
+}
+
+//Modal
+var Modal = function() {}
+Modal.prototype.getHtml = function(data) {
+	var temp = '';
+	temp += '<div class="window">';
+	temp += '<div class="window_top">';
+	temp += '<p>' + data.name + '<span><a  href="' + data.url + '" target="_blank">点击进入</a></span></p>';
+	temp += '</div>';
+	temp += '<div class="window_connet">';
+	for(var j = 0; j < data.items.length; j++) {
+		temp += '<p><a href="' + data.items[j].url + '" target="_blank">' + data.items[j].title + '</a></p>';
+	}
+	temp += '</div>';
+	temp += '</div>';
+	return temp;
+}
+Modal.prototype.show = function(data) {
+	layer.closeAll();
+	layer.open({
+		type: 1,
+		title: false,
+		skin:'modal-layer',
+		closeBtn: 1,
+		shade: 0,
+		shadeClose: true,
+		skin: 'yourclass',
+		content: this.getHtml(data)
+	});
+}
+
+//按钮链接
+var Links = function(clickHandler, focusOpen, focusClose) {
+	this.clickHandler = clickHandler;
+	this.focusOpen = focusOpen;
+	this.focusClose = focusClose;
+	this.list = [];
+	this.init();
+}
+Links.prototype.init = function() {
+	var self = this;
+	for(var i = 0; i < paths.length; i++) {
+		if(paths[i].id == 'sq') {
+			continue;
+		}
+		var item = new Links.Item(paths[i], function(data) {
+			self.clickHandler(data)
+		}, function(data) {
+			self.focusOpen(data)
+		}, function(data) {
+			self.focusClose(data)
+		})
+		this.list.push(item);
+		$('.banner .btns').append(item.element);
+	}
+}
+
+//按钮链接项
+Links.Item = function(data, clickHandler, focusOpen, focusClose) {
+	this.root_clickHandler = clickHandler;
+	this.root_focusOpen = focusOpen;
+	this.root_focusClose = focusClose;
+	this.data = data;
+
+	this.element = null;
+	this.init();
+}
+Links.Item.prototype.init = function() {
+	var self = this;
+	this.element = $('<li><a>' + this.data.name + '</a></li>');
+	this.data.linkInstance = this;
+
+	this.element.on('mouseenter', function() {
+		self.root_focusOpen(self.data)
+		self.focusOpen(self.data)
+	}).on('mouseleave', function() {
+		self.root_focusClose(self.data)
+		self.focusClose(self.data)
+	}).on('click', function() {
+		self.clickHandler(self.data)
+	})
+}
+
+Links.Item.prototype.focusOpen = function() {
+	this.element.addClass('active');
+}
+Links.Item.prototype.focusClose = function() {
+	this.element.removeClass('active');
+}
+Links.Item.prototype.clickHandler = function() {
+	this.root_clickHandler(this.data)
+}
+
+//地图
+var Map = function(id, type, width, height, clickHandler, focusOpen, focusClose) {
+	this.map = Raphael(id, width, height);
+	this.type = type;
+	this.paths = [];
+	this.clickHandler = clickHandler;
+	this.root_focusOpen = focusOpen;
+	this.root_focusClose = focusClose;
+	this.init();
+}
+Map.prototype.init = function() {
+	var self = this;
+	for(var i = 0; i < paths.length; i++) {
+		if(paths[i].type == this.type) {
+			this.paths.push(new Map.Path(this.map, paths[i], function(data) {
+				self.clickHandler(data)
+			}, function(data) {
+				self.focusOpen(data)
+			}, function(data) {
+				self.focusClose(data)
+			}));
+		}
+	}
+}
+Map.prototype.focusOpen = function(data) {
+	this.root_focusOpen(data)
+	for(var i = 0; i < this.paths.length; i++) {
+		this.paths[i].focusClose();
+	}
+}
+Map.prototype.focusClose = function(data) {
+	this.root_focusClose(data)
+}
+
+//地图路径
+Map.Path = function(map, data, clickHandler, focusOpen, focusClose) {
+	this.map = map;
+	this.data = data;
+	this.root_clickHandler = clickHandler;
+	this.root_focusOpen = focusOpen;
+	this.root_focusClose = focusClose;
+	this.pathAttr = {
+		"fill": '#45a1e2',
+		"fill-opacity": 0,
+		"cursor": "pointer",
+		"stroke": '#1B586B'
+	}
+	this.pathAttrActive = {
+		"fill-opacity": 1
+	}
+	this.textAttr = {
+		"fill": "#274867",
+		"font-size": "12px",
+		"cursor": "pointer",
+		"font-weight": "bold"
+	};
+	this.init();
+	this.initEvent();
+}
+Map.Path.prototype.init = function() {
+	this.path = this.map.path(this.data.path).attr(this.pathAttr);
+	this.txt = this.map.text(this.data.textLoc[0], this.data.textLoc[1], this.data.name).attr(this.textAttr);
+	this.data.pathInstance = this;
+	if(this.data.name == '市区') {
+		mainArea = this;
+	}
+}
+
+Map.Path.prototype.initEvent = function() {
+	var self = this;
+	this.path.mouseover(function() {
+		self.root_focusOpen(self.data);
+		self.focusOpen();
+	}).click(function() {
+		self.clickHandler()
+	});
+	this.txt.mouseover(function() {
+		self.root_focusOpen(self.data);
+		self.focusOpen();
+	}).click(function() {
+		self.clickHandler()
+	});
+	this.path.mouseout(function(ev) {
+		self.focusClose();
+		self.root_focusClose(self.data);
+	});
+}
+Map.Path.prototype.focusOpen = function() {
+	this.path.animate(this.pathAttrActive, 300);
+}
+Map.Path.prototype.focusClose = function() {
+	if(this.data.name != '市区' || !openMap) {
+		this.path.animate(this.pathAttr, 300);
+	}
+}
+Map.Path.prototype.clickHandler = function() {
+	this.root_clickHandler(this.data);
+}

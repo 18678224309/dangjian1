@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
+</head>
+<body>
+<div class="layui-container">
+    <div class="layui-col-md7">
+        <div class="layui-row grid-demo  layui-col-space20">
+            <div class="layui-col-md6">
+                <form class="layui-form" lay-filter="formTest">
+                    <div class="layui-form-item">
+                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                            <legend>请选择角色</legend>
+                        </fieldset>
+                        <div class="layui-input-block">
+                            <select name="role" lay-verify="required">
+                                <option value=""></option>
+                                <#if roles??>
+                                    <#list roles as role>
+                                        <option value="${role.id}">${role.rolenamecn}</option>
+                                    </#list>
+                                </#if>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="layui-col-md6">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>权限列表</legend>
+                </fieldset>
+                <div id="test12" class="demo-tree-more"></div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-col-md5">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+            <legend>操作</legend>
+        </fieldset>
+        <button class="layui-btn layui-btn-normal" onclick="affirm()"> 确认修改 </button>
+    </div>
+</div>
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var $=layui.jquery;
+    var tree = layui.tree
+        ,layer = layui.layer
+        ,util = layui.util
+        ,form = layui.form;
+    var selectValue = 0;
+        form.on('select', function(data){
+            var id=data.value;
+            selectValue=id;
+            if(id!=""){
+                $.post("/role/getMenusTreeByRoleId",{roleid:id},function(res){
+                    //基本演示
+                    tree.render({
+                        elem: '#test12'
+                        ,data: res.data
+                        ,showCheckbox: true  //是否显示复选框
+                        ,id: 'demoId1'
+                        /*,click: function(obj){
+                            var data = obj.data;  //获取当前点击的节点数据
+                            layer.msg('状态：'+ obj.state + '<br>节点数据：' + JSON.stringify(data));
+                        }*/
+                    });
+                    tree.setChecked('demoId1', res.Checked);
+                });
+            }else{
+                tree.render({
+                    elem: '#test12'
+                    ,data: []
+                    ,showCheckbox: true  //是否显示复选框
+                    ,id: 'demoId1'
+                });
+            }
+        });
+
+        //模拟数据
+        var data = [];
+        //基本演示
+        tree.render({
+            elem: '#test12'
+            ,data: data
+            ,showCheckbox: true  //是否显示复选框
+            ,id: 'demoId1'
+        });
+
+
+        function affirm(){
+            var checkData = tree.getChecked('demoId1');
+            if(selectValue!=""){
+                $.ajax({
+                    url : "/role/roleConfig/"+selectValue,
+                    type : "POST",
+                    dataType : "JSON",
+                    contentType:"application/json",
+                    data : JSON.stringify(checkData),
+                    success : function (res) {
+                        layer.msg(res.msg, {time: 1000});
+                    }
+                })
+            }
+        }
+</script>
+</html>

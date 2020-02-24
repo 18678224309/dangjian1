@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
+</head>
+<body>
+<form class="layui-form" lay-filter="formTest"> <!-- 提示：如果你不想用form，你可以换成div等任何一个普通元素 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-inline">
+            <input type="text" id="id" name="id"  disabled style="display: none">
+            <input type="text" name="examtitle"   placeholder="请输入标题" autocomplete="off" class="layui-input" required lay-verify="required" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">选项A</label>
+        <div class="layui-input-inline">
+            <input type="text" name="resulta"  placeholder="请输入选项A" autocomplete="off" class="layui-input" required lay-verify="required" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">选项B</label>
+        <div class="layui-input-inline">
+            <input type="text" name="resultb"   placeholder="请输入选项B" autocomplete="off" class="layui-input" required lay-verify="required" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">选项C</label>
+        <div class="layui-input-inline">
+            <input type="text" name="resultc"   placeholder="请输入选项C" autocomplete="off" class="layui-input" required lay-verify="required" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">选项D</label>
+        <div class="layui-input-inline">
+            <input type="text" name="resultd"  placeholder="请输入选项D" autocomplete="off" class="layui-input" required lay-verify="required" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">正确答案</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="A" title="A">
+            <input type="checkbox" name="B" title="B">
+            <input type="checkbox" name="C" title="C">
+            <input type="checkbox" name="D" title="D">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="go">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+    <!-- 更多表单结构排版请移步文档左侧【页面元素-表单】一项阅览 -->
+</form>
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var $=layui.jquery;
+    var form=layui.form;
+
+    form.on('submit(go)', function (data) {
+        var data1 = form.val("formTest");
+        var result="";
+        if(data1.A=="on"){
+            result+="A,";
+        }
+        if(data1.B=="on"){
+            result+="B,";
+        }
+        if(data1.C=="on"){
+            result+="C,";
+        }if(data1.D=="on"){
+            result+="D,";
+        }
+        data1.result=result;
+        $.ajax({
+            url : "/exam/updateExam",
+            type : "POST",
+            dataType : "JSON",
+            contentType:"application/json",
+            data : JSON.stringify(data1),
+            success : function (res) {
+                window.parent.location.reload();
+            }
+        });
+        return false;
+    });
+
+    function setForm(data) {
+        var results=(data.result).split(",");
+        var value={ //formTest 即 class="layui-form" 所在元素属性 lay-filter="" 对应的值
+            "id":data.id
+            ,"examtitle": data.examtitle // "name": "value"
+            ,"resulta": data.resulta
+            ,"resultb": data.resultb
+            ,"resultc": data.resultc
+            ,"resultd": data.resultd
+            ,"A":false
+            ,"B":false
+            ,"C":false
+            ,"D":false
+        };
+        for(var i=0;i<results.length;i++){
+            if(value.hasOwnProperty(results[i])){
+                value[results[i]]=true;
+            }
+        }
+        form.val("formTest",value);
+    }
+</script>
+</html>

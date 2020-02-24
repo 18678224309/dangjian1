@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css" media="all">
+</head>
+<style>
+    body{
+        font-family: 微软雅黑, 宋体, 黑体;
+        color: rgb(0, 0, 0);
+        font-size: 12px;
+    }
+    .Topheader{
+        height: 80px;
+    }
+    .RightBtn{
+        float: right;
+        font-size: 12px;
+        margin: 20px 0px 0px 0px;
+        display: inline;
+        font-family: "宋体", "黑体", "微软雅黑";
+    }
+    .dzyw_box{
+        overflow: hidden;
+        float: right;
+        width: 100%;
+        height: 428px;
+        border: solid 1px #de3401;
+        background-color: #fff;
+    }
+    .scrollUlcc{
+        BORDER-BOTTOM: #de3401 1px solid;
+        FLOAT: left;
+        HEIGHT: 40px;
+        OVERFLOW: hidden;
+    }
+    ul,li{
+        list-style: none;
+    }
+    .sds01{
+        CURSOR: pointer;
+        background-color:  #e62a04;;
+    }
+    .scrollUlcc li{
+        TEXT-ALIGN: left;
+        WIDTH: 99%;
+        FONT: 20px/200% "微软雅黑";
+        padding-left: 1%;
+        HEIGHT: 40px;
+        color: #ffffff;
+        OVERFLOW: hidden;
+    }
+    a{
+        cursor:pointer;
+    }
+    a:hover{
+        color:  #e62a04;;
+    }
+    .dt1{
+        font-size: 23px;font-weight: bolder;width: 370px; line-height: 40px;margin: 0 0 0 10px;white-space:nowrap; overflow:hidden; text-overflow:ellipsis;float: left;
+    }
+    .dt2{
+        font-size: 17px;width: 350px; line-height: 35px;margin: 0 0 0 10px;white-space:nowrap; overflow:hidden; text-overflow:ellipsis;float: left;
+    }
+    .manyClass{
+        color: #ffffff;
+    }
+</style>
+<body>
+<div class="layui-container" >
+
+    <div class="layui-row" id="modelHeader">
+        <div class="layui-col-md7  Topheader">
+        </div>
+        <div class="layui-col-md5  Topheader">
+            <div class="RightBtn">
+                <#if Session.userInfo??>
+                <div class="dropdown">
+                    <span>欢迎您,</span>
+                    <a href="/user/userCenter.html" class="dropdown-toggle user-name" data-toggle="dropdown" target="_blank"><strong>${Session.userInfo.name}</strong></a>
+                </div>
+
+                <#else>
+                <a onclick="login()">
+                    <img src="/static/djimages/20180905_btm_index09.jpg">
+                </a>
+            </#if>
+        </div>
+    </div>
+
+    <div class="layui-row layui-col-space20">
+        <div class="layui-col-md8">
+            <div class="layui-carousel" id="test1">
+                <div carousel-item id="carouselItem">
+
+
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="dzyw_box">
+                <ul class="scrollUlcc" style="width: 400px">
+                    <li  class="sds01"> 热点新闻 </li>
+                </ul>
+                <div style="width: 370px; height:380px; ">
+                    <dl id="hotdl">
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space10">
+        <div class="layui-col-md4 ">
+            <div style="height: 380px;">
+                <div style="width: 100%;height: 40px;border: 1px solid #ff4502;background: #ff4502  no-repeat center right; margin-bottom: 5px">
+                    <label style="margin:10px;font-size: 20px;color: #ffffff">纪检工作</label>
+                    <span style="float: right;margin:0 10px 0 0;font-size: 16px;">
+                        <a class="manyClass" onclick="getMore(1)">更多</a>
+                    </span>
+                </div>
+
+                <div style="width: 100%;height: 380px;border:  1px solid #ddd;">
+                    <div style="width: 90%;height: 40%; margin: 20px 5% 20px 5%;" id="jjgz">
+
+                    </div>
+                    <dl id="jjgzdl">
+
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div style="height: 380px;">
+                <div style="width: 100%;height: 40px;border: 1px solid #ff4502;background: #ff4502  no-repeat center right; margin-bottom: 5px">
+                    <label style="margin:10px;font-size: 20px;color: #ffffff">组织工作</label>
+                    <span style="float: right;margin:0 10px 0 0;font-size: 16px;">
+                        <a class="manyClass" onclick="getMore(2)">更多</a>
+                    </span>
+                </div>
+
+                <div style="width: 100%;height: 380px;border:  1px solid #ddd;">
+                    <div style="width: 90%;height: 40%; margin: 20px 5% 20px 5%;" id="zzgz">
+
+                    </div>
+                    <dl id="zzgzdl">
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div style="height: 380px;">
+                <div style="width: 100%;height: 40px;border: 1px solid #ff4502;background: #ff4502  no-repeat center right; margin-bottom: 5px">
+                    <label style="margin:10px;font-size: 20px;color: #ffffff">宣传工作</label>
+                    <span style="float: right;margin:0 10px 0 0;font-size: 16px;">
+                        <a class="manyClass" onclick="getMore(3)">更多</a>
+                    </span>
+                </div>
+
+                <div style="width: 100%;height: 380px;border:  1px solid #ddd;">
+                    <div style="width: 90%;height: 40%; margin: 20px 5% 20px 5%;" id="xcgz">
+
+                    </div>
+                    <dl id="xcgzdl">
+
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-row layui-col-space10" style="margin-top: 30px">
+        <div class="layui-col-md4 ">
+            <div style="height: 380px;">
+                <div style="width: 100%;height: 40px;border: 1px solid #ff4502;background: #ff4502  no-repeat center right; margin-bottom: 5px">
+                    <label style="margin:10px;font-size: 20px;color: #ffffff">统战工作</label>
+                    <span style="float: right;margin:0 10px 0 0;font-size: 16px;">
+                        <a class="manyClass" onclick="getMore(4)">更多</a>
+                    </span>
+                </div>
+
+                <div style="width: 100%;height: 380px;border:  1px solid #ddd;">
+                    <div style="width: 90%;height: 40%; margin: 20px 5% 20px 5%;" id="tzgz">
+
+                    </div>
+                    <dl id="tzgzdl">
+
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div style="height: 380px;">
+                <div style="width: 100%;height: 40px;border: 1px solid #ff4502;background: #ff4502  no-repeat center right; margin-bottom: 5px">
+                    <label style="margin:10px;font-size: 20px;color: #ffffff">政法工作</label>
+                    <span style="float: right;margin:0 10px 0 0;font-size: 16px;">
+                        <a class="manyClass" onclick="getMore(5)">更多</a>
+                    </span>
+                </div>
+
+                <div style="width: 100%;height: 380px;border:  1px solid #ddd;">
+                    <div style="width: 90%;height: 40%; margin: 20px 5% 20px 5%;" id="zfgz">
+
+                    </div>
+                    <dl id="zfgzdl">
+
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div style="height: 380px;">
+                <div style="width: 100%;height: 40px;border: 1px solid #ff4502;background: #ff4502  no-repeat center right; margin-bottom: 5px">
+                    <label style="margin:10px;font-size: 20px;color: #ffffff">群团工作</label>
+                    <span style="float: right;margin:0 10px 0 0;font-size: 16px;">
+                        <a class="manyClass" onclick="getMore(6)">更多</a>
+                    </span>
+                </div>
+
+                <div style="width: 100%;height: 380px;border:  1px solid #ddd;">
+                    <div style="width: 90%;height: 40%; margin: 20px 5% 20px 5%;" id="qtgz">
+
+                    </div>
+                    <dl id="qtgzdl">
+
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 100px"></div>
+</div>
+
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var carousel = layui.carousel;
+    var $=layui.jquery;
+
+    function login() {
+        window.location.href="/user/login.html";
+    }
+    $(function () {
+        var options={
+            elem: '#test1'
+            ,width: '100%' //设置容器宽度
+            ,height:'430px'
+            ,arrow: 'hover' //始终显示箭头
+        };
+        //建造实例
+        var ins=carousel.render(options);
+        var types=[-1,1,2,3,4,5,6,7];
+        for(var i=0;i<types.length;i++){
+            $.get('/imgLink/getImgLink',{type:types[i]},function (r) {
+                var records=r.data.records;
+                for(var j=0;j<records.length;j++){
+                    var type=records[j].type;
+                    switch (type) {
+                        case -1:
+                            $("#carouselItem").append('<div><img src="'+records[j].imgurl+'" style="width: 100%;height: 100%"></div>');
+                            //重置轮播
+                            ins.reload(options);
+                            break;
+                        case 1:
+                            $("#jjgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            break;
+                        case 2:
+                            $("#zzgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            break;
+                        case 3:
+                            $("#xcgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            break;
+                        case 4:
+                            $("#tzgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            break;
+                        case 5:
+                            $("#zfgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            break;
+                        case 6:
+                            $("#qtgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            break;
+
+                    }
+                }
+            });
+
+
+            $.get('/journalism/journalismList',{page:0,limit:10,type:types[i]},function (r) {
+                    var records=r.data.records;
+                    for(var j=0;j<records.length;j++){
+                        var type=records[j].type;
+                            switch (type) {
+                                    case 1:
+                                        console.log(1);
+                                        $("#jjgzdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                    case 2:
+                                        $("#zzgzdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                    case 3:
+                                        $("#xcgzdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                    case 4:
+                                        $("#tzgzdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                    case 5:
+                                        $("#zfgzdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                    case 6:
+                                        $("#qtgzdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                    case 7:
+                                        if(j==0){
+                                            $("#hotdl").append('  <dt class="dt1"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                            break;
+                                        }
+                                        $("#hotdl").append('  <dt class="dt2"> <a href="/journalism/detail.html?id='+records[j].id+'" target="_blank">'+records[j].title+'</a></dt>');
+                                        break;
+                                }
+                }
+            });
+        }
+    });
+
+    function getMore(type) {
+        var tempwindow=window.open('_blank');
+        tempwindow.location="/journalism//modelPage.html?type="+type;
+    }
+</script>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0054)https://tjdyda.tianjindangjian.gov.cn:4433/welcome.php -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <link href="/static/djimages/master.css" rel="stylesheet" type="text/css">
+    <link href="/static/djimages/dy-login.css" rel="stylesheet" type="text/css">
+</head>
+<body style="overflow: hidden;">
+<div class="login-box">
+    <div class="box">
+        <div class="shu"><img src="/static/djimages/b-s.png"></div>
+        <div class="logo">
+           
+        </div>
+        <div class="bd">
+            <form class="layui-form"  >
+                <input name="auth_server" type="hidden" id="authserver" >
+                <table>
+                    <tbody><tr>
+                        <td>
+                            <input id="txtIDCard" name="user_name" class="input-box username" type="text" value="" placeholder="登陆账号">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input id="txtPassword" name="pass" class="input-box password" type="password" value="" placeholder="密码">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left: 32px;padding-top: 190px;">
+                           
+                        </td>
+                        <td style="padding-left: 26px;padding-top: 190px;">
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+                <div id="drag" style="left: 32px;top: 196px;"></div>
+                <button class="btn btn-anniu" type="button" style="left: 32px;top: 240px;" onclick="sbumit()">
+                    登 录
+                </button>
+            </form>
+
+            <button onclick="go_back();" class="btn btn-back" type="submit" style="left: 150px;top: 240px;">
+                返 回
+            </button>
+            <div class="download">
+								</div>
+        </div>
+        <table style="padding-top: 0px;padding-bottom: 5px;"></table>
+        <input type="hidden" id="u" value="false">
+    </div>
+</div>
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var $=layui.jquery;
+    function  go_back() {
+        window.location.href="/user/Home.html";
+    }
+    function sbumit() {
+        var username=$("#txtIDCard").val();
+        var password=$("#txtPassword").val();
+        $.post("/user/loginUser",{username:username,password:password},function (r) {
+            if(r.code==200){
+                window.location.href="/user/Home.html";
+            }else{
+                alert(r.msg);
+            }
+        });
+    }
+</script>
+</html>

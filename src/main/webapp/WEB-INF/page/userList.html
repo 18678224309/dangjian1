@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
+</head>
+<body>
+<table class="layui-hide" id="test" lay-filter="test"></table>
+
+<script type="text/html" id="toolbarDemo">
+    <@shiro.hasPermission name="userAdd">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="addUserButton">添加用户</button>
+    </div>
+    </@shiro.hasPermission>
+</script>
+
+<script type="text/html" id="barDemo">
+    <@shiro.hasPermission name="userDelete">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </@shiro.hasPermission>
+
+    <@shiro.hasPermission name="userUpdate">
+    <a class="layui-btn layui-btn-checked layui-btn-xs" lay-event="edit">编辑</a>
+    </@shiro.hasPermission>
+
+    <@shiro.hasPermission name="lookReport">
+    <a class="layui-btn layui-btn-checked layui-btn-xs" lay-event="lookReport">查看思想汇报</a>
+    </@shiro.hasPermission>
+
+
+    <@shiro.hasPermission name="lookPdf">
+             <a class="layui-btn layui-btn-checked layui-btn-xs" lay-event="lookPdf">查看pdf资料</a>
+    </@shiro.hasPermission>
+
+</script>
+
+</body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var table=layui.table;
+    var $=layui.jquery;
+    var form=layui.form;
+    var tableIns=table.render({
+        elem: '#test'
+        ,url:'/user/userList'
+        ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+        ,defaultToolbar: []
+        ,title: '用户数据表'
+        ,cols: [[
+            {type: 'checkbox', fixed: 'left'}
+            ,{field:'id', title:'ID', width:80}
+            ,{field:'username', title:'用户名', width:120}
+            ,{field:'name', title:'姓名', width:120}
+            ,{field:'phone', title:'手机号', width:120}
+            ,{field:'sex', title:'性别', width:120,templet:function (d) {
+                    if(d.sex==1){
+                        return "男";
+                    }else{
+                        return "女";
+                    }
+                }}
+            ,{field:'age', title:'年龄', width:120}
+            ,{field:'address', title:'家庭地址', width:270}
+            ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:300}
+        ]]
+        ,page: true
+        ,parseData:function (res) {
+            return{
+                "count": res.data.total, //解析数据长度
+                "data": res.data.records,
+                "code":res.code
+            }
+        },
+        response:{
+            "statusCode":"200"
+        }
+    });
+
+    //头工具栏事件
+    table.on('toolbar(test)', function(obj){
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch(obj.event){
+            case 'addUserButton':
+                /*var data = checkStatus.data;
+                layer.alert(JSON.stringify(data));*/
+                layer.open({
+                     type:2,
+                     content:['/user/userEdit.html', 'no']
+                    ,area: ['600px','500px']
+                    , success: function(layero, index){
+                        var body = layer.getChildFrame('body', index);
+                        var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：
+                         iframeWin.renderSelect();
+                    }
+                });
+                break;
+        };
+    });
+
+    //监听行工具事件
+    table.on('tool(test)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+            layer.confirm('确认删除此用户吗？', function(index){
+                layer.close(index);
+                $.post("/user/deleteUser",{id:data.id},function (res) {
+                    window.location.reload();
+                });
+            });
+        }
+
+        if(obj.event === 'edit'){
+            layer.open({
+                type:2,
+                content:['/user/userEdit.html', 'no']
+                ,area:  ['600px','550px']
+                , success: function(layero, index){
+                    var body = layer.getChildFrame('body', index);
+                    var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：
+                    iframeWin.setForm(data);
+                }
+            });
+        }
+
+        if(obj.event === 'lookPdf'){
+            window.open("/static/pdfjs/web/viewer.html?file="+data.pdfurl);
+        }
+    });
+
+
+</script>
+</html>
