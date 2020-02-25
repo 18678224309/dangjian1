@@ -82,6 +82,7 @@
 <script>
     var upload = layui.upload;
     var form=layui.form;
+    var $=layui.jquery;
     var layer = layui.layer;
     var formContent="   <form class=\"layui-form\" lay-filter=\"formTest\" >\n" +
         "                                    <div class=\"layui-form-item\">\n" +
@@ -105,11 +106,6 @@
         "                                        </div>\n" +
         "                                    </div>\n" +
         "\n" +
-        "                                    <div class=\"layui-form-item\">\n" +
-        "                                        <div class=\"layui-input-block\">\n" +
-        "                                            <button class=\"layui-btn\" lay-submit lay-filter=\"changePassword\">立即提交</button>\n" +
-        "                                        </div>\n" +
-        "                                    </div>\n" +
         "                                </form>";
 
        var uoloadContent=" <div class=\"layui-card\">\n" +
@@ -138,11 +134,27 @@
             type: 1,
             content: formContent,
             area: ['500px', '300px']
+            ,btn: ['提交']
+            ,yes: function(index, layero){
+                //获取表单区域所有值
+                var data1 = form.val("formTest");
+                var oldPassword=data1.oldPassword;
+                var newPassword=data1.newPassword;
+                var newPasswordAgain=data1.newPasswordAgain;
+                if(newPassword!=newPasswordAgain){
+                    layer.msg("两次输入的密码不一致!");
+                    return false;
+                }else{
+                    $.post("/user/changePassword",{oldPassword:oldPassword,newPassword:newPassword},function (r) {
+                        layer.msg(r.msg);
+                        layer.close(index);
+                    });
+                }
+            }
         });
     }
 
     function showUploadModel() {
-
         layer.open({
             type: 1,
             content: uoloadContent,
@@ -160,34 +172,6 @@
         tempwindow.location='/user/index.html' ;
     }
 
-    form.on('submit(changePassword)', function(data){
-        var oldPassword=data.field.oldPassword;
-        var newPassword=data.field.newPassword;
-        var newPasswordAgain=data.field.newPasswordAgain;
-        if(newPassword!=newPasswordAgain){
-            layer.msg("两次输入的密码不一致!");
-            return false;
-        }else{
-            $.ajax({
-                //请求方式
-                type : "POST",
-                //请求地址
-                url : "/user/changePassword",
-                //数据，json字符串
-                data : {oldPassword:oldPassword,newPassword:newPassword},
-                async:false,
-                //请求成功
-                success : function(result) {
-                    console.log(result);
-                },
-                //请求失败，包含具体的错误信息
-                error : function(e){
-                    console.log(e.status);
-                    console.log(e.responseText);
-                }
-            });
-        }
-        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
-    });
+
 </script>
 </html>

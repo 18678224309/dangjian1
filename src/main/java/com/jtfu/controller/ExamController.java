@@ -1,15 +1,26 @@
 package com.jtfu.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.jtfu.entity.Exam;
+import com.jtfu.entity.Examrecord;
+import com.jtfu.entity.User;
 import com.jtfu.service.IExamService;
+import com.jtfu.service.IExamrecordService;
 import com.jtfu.util.R;
+import com.jtfu.util.TimeUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Controller
 @RequestMapping("/exam")
@@ -18,6 +29,9 @@ public class ExamController {
 
     @Autowired
     IExamService examService;
+
+    @Autowired
+    IExamrecordService examrecordService;
 
     private String prefix="/exam";
 
@@ -32,10 +46,27 @@ public class ExamController {
     }
 
     @GetMapping("/examPage.html")
-    public String examPage(){
+    public String examPage(Model model){
         //获得当前登录用户的id，查询考试记录本季度是否进行过考试。
         //没有考试才允许继续；
         //随机从题库拿10个题组织试卷，进行考试.
+        Subject subject = SecurityUtils.getSubject();
+        User user= (User) subject.getPrincipal();
+        QueryWrapper wrapper=new QueryWrapper();
+        wrapper.eq("userid",user.getId());
+        wrapper.between("time", TimeUtils.getCurrentQuarterStartTime(),TimeUtils.getCurrentQuarterEndTime());
+        Examrecord one = examrecordService.getOne(wrapper);
+        if(one==null){
+            QueryWrapper examWrapper=new QueryWrapper();
+            examWrapper.orderByDesc("createtime");
+            List<Exam> list = examService.list();
+            if(list.size()>10){
+                list=list.subList(0,10);
+            }
+            model.addAttribute("exams",list);
+        }else{
+            model.addAttribute("msg","此用户本季度已经考试！");
+        }
         return prefix+"/examPage";
     }
 
@@ -97,4 +128,6 @@ public class ExamController {
         }
         return R.error();
     }
+
+
 }

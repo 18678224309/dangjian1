@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../dist/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css" media="all">
 </head>
 <body>
     <div class="layui-main">
@@ -10,24 +10,28 @@
 
             <div class="layui-row">
                 <div class="layui-col-xs12">
-                    <form class="layui-form" lay-filter="formTest" >
-                    <input type="hidden" value="1" name="id">
-                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
-                        <legend>1.Spring中获得bean有几种方式？</legend>
-                    </fieldset>
+                    <#if exams??>
+                        <#list exams as exam>
+                               <form class="layui-form" lay-filter="formTest" >
+                                        <input type="hidden" value="${exam.id}" name="id">
+                                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                            <legend>${exam_index+1}.${exam.examtitle}</legend>
+                                        </fieldset>
 
-                    <blockquote class="layui-elem-quote layui-quote-nm">
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">答案</label>
-                            <div class="layui-input-block">
-                                <input type="checkbox" name="A" title="写作">
-                                <input type="checkbox" name="B" title="阅读">
-                                <input type="checkbox" name="C" title="游戏">
-                                <input type="checkbox" name="D" title="动作">
-                            </div>
-                        </div>
-                    </blockquote>
-                    </form>
+                                        <blockquote class="layui-elem-quote layui-quote-nm">
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">答案</label>
+                                                <div class="layui-input-block">
+                                                    <input type="checkbox" name="A" title="${exam.resulta}">
+                                                    <input type="checkbox" name="B" title="${exam.resultb}">
+                                                    <input type="checkbox" name="C" title="${exam.resultc}">
+                                                    <input type="checkbox" name="D" title="${exam.resultd}">
+                                                </div>
+                                            </div>
+                                        </blockquote>
+                                    </form>
+                        </#list>
+                    </#if>
                 </div>
             </div>
 
@@ -44,7 +48,7 @@
         </div>
     </div>
 </body>
-<script src="../dist/layui.all.js"></script>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
 <script>
     var $=layui.$;
     var form=layui.form;
@@ -61,11 +65,27 @@
             }
             exam.push(itemMap);
         }
-        console.log(exam);
+        $.ajax({
+               url:"/examrecord/addExamrecord",
+               contentType: "application/json;charset=UTF-8",
+               type : "POST",
+               async:false,
+               data:JSON.stringify(exam),
+               success : function(result) {
+                   layer.msg(result.msg);
+                   setTimeout(function () {
+                        window.close();
+                   },1000);
+               },
+           });
     }
-    form.val("formTest", { //formTest 即 class="layui-form" 所在元素属性 lay-filter="" 对应的值
-        "A": true,
-        "B":true,
+    $(function () {
+       var msg='${msg!}';
+       if(msg!=""){
+           alert(msg);
+           window.close();
+           return;
+       }
     });
 </script>
 </html>
