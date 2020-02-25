@@ -43,31 +43,33 @@ public class JournalismController {
     @Autowired
     IImgLinkService imgLinkService;
 
+    private String prefix="/journalism";
+
     @GetMapping("/journalismList.html")
     public String JournalismList(){
-        return "/journalismList";
+        return prefix+"/journalismList";
     }
 
     @GetMapping("/journalismAdd.html")
     public String JournalismEdit(){
-        return "/journalismAdd";
+        return prefix+"/journalismAdd";
     }
 
     @GetMapping("/modelPage.html")
     public String modelPage(Integer type,Model model){
         model.addAttribute("type",type);
-        return "/modelPage";
+        return prefix+"/modelPage";
     }
 
     @GetMapping("/detail.html")
     public String detailHtml(Integer id, Model model){
         Journalism byId = journalismService.getById(id);
         model.addAttribute("model",byId);
-        return "/detail";
+        return prefix+"/detail";
     }
 
     @GetMapping("/imgLinkJour.html")
-    public  String imgLinkJour(){return "/imgLinkJour";}
+    public  String imgLinkJour(){return prefix+"/imgLinkJour";}
 
     @GetMapping("/journalismList")
     @ResponseBody

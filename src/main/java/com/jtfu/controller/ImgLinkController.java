@@ -22,6 +22,8 @@ public class ImgLinkController {
     @Autowired
     IImgLinkService imgLinkService;
 
+
+
     @GetMapping("/insertImgLink")
     @ResponseBody
     public R insertImgLink(Imglink imgLink){

@@ -19,15 +19,27 @@ public class ExamController {
     @Autowired
     IExamService examService;
 
+    private String prefix="/exam";
+
     @GetMapping("/examList.html")
     public String examList(){
-        return "/examList";
+        return prefix+"/examList";
     };
 
     @GetMapping("/examEdit.html")
     public String examEdit(){
-        return "/examEdit";
+        return prefix+"/examEdit";
     }
+
+    @GetMapping("/examPage.html")
+    public String examPage(){
+        //获得当前登录用户的id，查询考试记录本季度是否进行过考试。
+        //没有考试才允许继续；
+        //随机从题库拿10个题组织试卷，进行考试.
+        return prefix+"/examPage";
+    }
+
+
 
     @GetMapping("/examList")
     @ResponseBody

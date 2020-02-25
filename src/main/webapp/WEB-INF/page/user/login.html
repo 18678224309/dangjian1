@@ -56,14 +56,14 @@
 <script>
     var $=layui.jquery;
     function  go_back() {
-        window.location.href="/user/Home.html";
+        window.location.href="Home.html";
     }
     function sbumit() {
         var username=$("#txtIDCard").val();
         var password=$("#txtPassword").val();
         $.post("/user/loginUser",{username:username,password:password},function (r) {
             if(r.code==200){
-                window.location.href="/user/Home.html";
+                window.location.href="Home.html";
             }else{
                 alert(r.msg);
             }

@@ -52,13 +52,13 @@
                                         </div>
                                     </div>
 
-
+                                    <@shiro.hasPermission name="ADMIN">
                                     <div class="layui-col-md3">
                                         <div >
-                                            <button type="button" class="layui-btn layui-btn-fluid">后台管理</button>
+                                            <button type="button" class="layui-btn layui-btn-fluid" onclick="goAdmin()">后台管理</button>
                                         </div>
                                     </div>
-
+                                    </@shiro.hasPermission>
 
                                     <div class="layui-col-md3">
                                         <div >
@@ -87,27 +87,27 @@
         "                                    <div class=\"layui-form-item\">\n" +
         "                                        <label class=\"layui-form-label\">原密码</label>\n" +
         "                                        <div class=\"layui-input-inline\">\n" +
-        "                                            <input type=\"text\" name=\"\" placeholder=\"请输入\" autocomplete=\"off\" class=\"layui-input\">\n" +
+        "                                            <input type=\"text\" name=\"oldPassword\" placeholder=\"请输入\" autocomplete=\"off\" class=\"layui-input\">\n" +
         "                                        </div>\n" +
         "                                    </div>\n" +
         "\n" +
         "                                    <div class=\"layui-form-item\">\n" +
         "                                        <label class=\"layui-form-label\">输入新密码</label>\n" +
         "                                        <div class=\"layui-input-inline\">\n" +
-        "                                            <input type=\"text\" name=\"\" placeholder=\"请输入\" autocomplete=\"off\" class=\"layui-input\">\n" +
+        "                                            <input type=\"text\" name=\"newPassword\" placeholder=\"请输入\" autocomplete=\"off\" class=\"layui-input\">\n" +
         "                                        </div>\n" +
         "                                    </div>\n" +
         "\n" +
         "                                    <div class=\"layui-form-item\">\n" +
         "                                        <label class=\"layui-form-label\">确认新密码</label>\n" +
         "                                        <div class=\"layui-input-inline\">\n" +
-        "                                            <input type=\"text\" name=\"\" placeholder=\"请输入\" autocomplete=\"off\" class=\"layui-input\">\n" +
+        "                                            <input type=\"text\" name=\"newPasswordAgain\" placeholder=\"请输入\" autocomplete=\"off\" class=\"layui-input\">\n" +
         "                                        </div>\n" +
         "                                    </div>\n" +
         "\n" +
         "                                    <div class=\"layui-form-item\">\n" +
         "                                        <div class=\"layui-input-block\">\n" +
-        "                                            <button class=\"layui-btn\" lay-submit lay-filter=\"*\">立即提交</button>\n" +
+        "                                            <button class=\"layui-btn\" lay-submit lay-filter=\"changePassword\">立即提交</button>\n" +
         "                                        </div>\n" +
         "                                    </div>\n" +
         "                                </form>";
@@ -152,20 +152,42 @@
 
     function goExamPage() {
         var tempwindow=window.open('_blank');
-        tempwindow.location='./examPage.html' ;
+        tempwindow.location='/exam/examPage.html' ;
     }
 
-/*    $(function () {
-        var roleid='${Session.userInfo.roleid}';
-        $.get("/role/getRoleAll",{},function (res) {
-            var roleList=res;
-            for(var i=0;i<roleList.length;i++){
-                var item=roleList[i];
-                if(roleid==item.id){
-                    $("#roleName").html(item.rolenamecn);
+    function goAdmin() {
+        var tempwindow=window.open('_blank');
+        tempwindow.location='/user/index.html' ;
+    }
+
+    form.on('submit(changePassword)', function(data){
+        var oldPassword=data.field.oldPassword;
+        var newPassword=data.field.newPassword;
+        var newPasswordAgain=data.field.newPasswordAgain;
+        if(newPassword!=newPasswordAgain){
+            layer.msg("两次输入的密码不一致!");
+            return false;
+        }else{
+            $.ajax({
+                //请求方式
+                type : "POST",
+                //请求地址
+                url : "/user/changePassword",
+                //数据，json字符串
+                data : {oldPassword:oldPassword,newPassword:newPassword},
+                async:false,
+                //请求成功
+                success : function(result) {
+                    console.log(result);
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
                 }
-            }
-        });
-    });*/
+            });
+        }
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
 </script>
 </html>

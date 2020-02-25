@@ -14,6 +14,7 @@ import com.jtfu.util.R;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,29 +50,32 @@ public class UserController {
     @Autowired
     IUserRoleService userRoleService;
 
+    private String prefix="/user";
+
     @GetMapping("/index.html")
+    @RequiresPermissions({"ADMIN"})
     public String index(){
-        return "/index";
+        return prefix+"/index";
     }
     @GetMapping("/Home.html")
     public String Home(){
-        return "/Home";
+        return prefix+"/Home";
     }
     @GetMapping("/login.html")
     public String login(){
-        return "/login";
+        return prefix+"/login";
     }
     @GetMapping("/unauthorized.html")
     public String unauthorized(){
-        return "/unauthorized";
+        return prefix+"/unauthorized";
     }
     @GetMapping("/userList.html")
-    public String userList(){return "/userList";}
+    public String userList(){return prefix+"/userList";}
     @GetMapping("/userEdit.html")
-    public String userEdit(){return "/userEdit";}
+    public String userEdit(){return prefix+"/userEdit";}
     @GetMapping("/userCenter.html")
     public String userCenter(){
-        return "/userCenter";
+        return prefix+"/userCenter";
     }
 
     @GetMapping("/edit")
@@ -214,6 +218,20 @@ public class UserController {
         }
         return R.error("上传失败");
     }
+
+    @PostMapping("/changePassword")
+    @ResponseBody
+    public R changePssword(String oldPassword,String newPassword){
+        Subject subject = SecurityUtils.getSubject();
+        User user= (User) subject.getPrincipal();
+        if(user.getPassword().equals(oldPassword)){
+            user.setPassword(newPassword);
+            userService.updateById(user);
+            return R.success();
+        }
+       return R.error();
+    }
+
 
 
 }

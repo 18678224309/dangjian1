@@ -48,6 +48,8 @@ public class RoleController {
     @Autowired
     IUserRoleService userRoleService;
 
+    private String prefix="/role";
+
     private static List<Role> ROLELIST=new ArrayList<Role>();
 
     public static List<Role> getROLELIST() {
@@ -61,7 +63,7 @@ public class RoleController {
 
     @GetMapping("/roleList.html")
     public String roleList(){
-        return "roleList";
+        return prefix+"/roleList";
     }
 
 
@@ -69,7 +71,7 @@ public class RoleController {
     @GetMapping("/roleConfig.html")
     public String roleConfig(Model model){
         model.addAttribute("roles",ROLELIST);
-        return "roleConfig";
+        return prefix+"/roleConfig";
     }
 
     @PostMapping("/getMenusTreeByRoleId")
