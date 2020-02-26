@@ -45,10 +45,21 @@ public class User implements Serializable {
 
     private Integer examnum;
 
+    private String idcard;
+
 
     private Integer delflag;
     @TableField(exist = false)
     private List<Role> roles;
+
+
+    public String getIdcard() {
+        return idcard;
+    }
+
+    public void setIdcard(String idcard) {
+        this.idcard = idcard;
+    }
 
     public List<Role> getRoles() {
         return roles;

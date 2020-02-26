@@ -1,15 +1,22 @@
 package com.jtfu.controller;
 
 
+import com.alibaba.druid.util.StringUtils;
+import com.alibaba.fastjson.JSONObject;
 import com.baidu.ueditor.define.FileType;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.jtfu.config.MyAuthRealm;
+import com.jtfu.entity.Menu;
+import com.jtfu.entity.Role;
 import com.jtfu.entity.User;
 import com.jtfu.entity.UserRole;
 import com.jtfu.mapper.UserMapper;
 import com.jtfu.service.IUserRoleService;
 import com.jtfu.service.IUserService;
+import com.jtfu.util.Doc2Pdf;
 import com.jtfu.util.R;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shiro.SecurityUtils;
@@ -49,6 +56,7 @@ public class UserController {
     }
     @Autowired
     IUserRoleService userRoleService;
+
 
     private String prefix="/user";
 
@@ -97,11 +105,15 @@ public class UserController {
 
     @GetMapping("/userList")
     @ResponseBody
-    public R userListData(int page,int limit){
+    public R userListData(int page,int limit,User user){
+        QueryWrapper queryWrapper=new QueryWrapper();
+        if(!StringUtils.isEmpty(user.getName())){
+            queryWrapper.like("name",user.getName());
+        }
         Page page1=new Page();
         page1.setCurrent(page);
         page1.setSize(limit);
-        IPage iPage = userService.page(page1);
+        IPage iPage = userService.page(page1,queryWrapper);
         return R.success("查询成功",iPage);
     }
 
@@ -112,13 +124,14 @@ public class UserController {
         if(user.getId()!=null){
             User byId = userService.getById(user.getId());
             if(byId!=null){
-                byId.setUsername(user.getUsername());
+                byId.setUsername(user.getIdcard());
                 byId.setAddress(user.getAddress());
                 byId.setAge(user.getAge());
                 byId.setName(user.getName());
                 byId.setPhone(user.getPhone());
                 byId.setSex(user.getSex());
                 byId.setRoleid(user.getRoleid());
+                byId.setIdcard(user.getIdcard());
                 UserRole userRoleByUserId = userRoleService.getUserRoleByUserId(user.getId());
                 if(userRoleByUserId==null){
                     UserRole userRole=new UserRole();
@@ -133,13 +146,15 @@ public class UserController {
             }
         }else{
             QueryWrapper query=new QueryWrapper();
-            query.eq("username",user.getUsername());
+            query.eq("username",user.getIdcard());
             query.select("id");
             User yan = userService.getOne(query);
             if(yan!=null){
                 return R.error("当前用户名已存在，添加失败！");
             }
-            user.setPassword("123456");
+            String idcard=user.getIdcard();
+            user.setUsername(idcard);
+            user.setPassword(idcard.substring(idcard.length()-6));
             user.setImgurl("");
             user.setDelflag(0);
             UserRole userRole=new UserRole();
@@ -183,6 +198,17 @@ public class UserController {
                 subject.login(token);
                 User user = (User) subject.getPrincipal();
                 subject.getSession().setAttribute("userInfo",user);
+                List<Role> roleSet = user.getRoles();
+                List<String> permissionList=new ArrayList<String>();
+                if (CollectionUtils.isNotEmpty(roleSet)) {
+                    for(Role role : roleSet) {
+                        List<Menu> menuSet = role.getMenus();
+                        if (CollectionUtils.isNotEmpty(menuSet)) {
+                            MyAuthRealm.setPermissions(permissionList,menuSet);
+                        }
+                    }
+                }
+                subject.getSession().setAttribute("permissionList", JSONObject.toJSONString(permissionList));
                 return R.success();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -219,6 +245,60 @@ public class UserController {
         return R.error("上传失败");
     }
 
+    @PostMapping("/imgUpload")
+    @ResponseBody
+    public R imgUpload(MultipartFile file,Integer id,HttpServletRequest request)throws Exception{
+        if(id!=null){
+            User byId = userService.getById(id);
+            if(byId!=null){
+                String staticPath=request.getRealPath("static");
+                String imgPath="/head/photo/";
+                String suffix = FileType.getSuffixByFilename(file.getOriginalFilename());
+                String imgName= byId.getUsername()+suffix;
+                File dirPath=new File(staticPath+imgPath);
+                if(!dirPath.exists()){
+                    dirPath.mkdirs();
+                }
+                FileOutputStream outputStream=new FileOutputStream(new File(staticPath+imgPath+imgName));
+                outputStream.write(file.getBytes());
+                outputStream.flush();
+                outputStream.close();
+                byId.setImgurl("/static"+imgPath+imgName);
+                userService.updateById(byId);
+                User user= (User) SecurityUtils.getSubject().getPrincipal();
+                user.setImgurl(byId.getImgurl());
+                return R.success("上传成功");
+            }
+        }
+        return R.error("上传失败");
+    }
+
+
+    @PostMapping("/wordUpload")
+    @ResponseBody
+    public R wordUpload(MultipartFile file,Integer id,HttpServletRequest request)throws Exception{
+        if(id!=null){
+            User byId = userService.getById(id);
+            if(byId!=null){
+                String staticPath=request.getRealPath("static");
+                String pdfPath="/pdfjs/web/word/";
+                String suffix = replaceDocx(FileType.getSuffixByFilename(file.getOriginalFilename()));
+                String pdfName= byId.getUsername()+suffix;
+                File dirPath=new File(staticPath+pdfPath);
+                if(!dirPath.exists()){
+                    dirPath.mkdirs();
+                }
+                Doc2Pdf.doc2pdf(file.getInputStream(),staticPath+pdfPath+pdfName);
+                byId.setWordurl("/static"+pdfPath+pdfName);
+                userService.updateById(byId);
+                User user= (User) SecurityUtils.getSubject().getPrincipal();
+                user.setImgurl(byId.getImgurl());
+                return R.success("上传成功");
+            }
+        }
+        return R.error("上传失败");
+    }
+
     @PostMapping("/changePassword")
     @ResponseBody
     public R changePssword(String oldPassword,String newPassword){
@@ -233,5 +313,9 @@ public class UserController {
     }
 
 
+    static String replaceDocx(String docx){
+        docx=docx.replaceAll("docx","pdf");
+        return docx;
+    }
 
 }

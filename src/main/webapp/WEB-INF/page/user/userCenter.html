@@ -60,11 +60,21 @@
                                     </div>
                                     </@shiro.hasPermission>
 
+                                <@shiro.hasPermission name="uploadWord">
                                     <div class="layui-col-md3">
                                         <div >
-                                            <button type="button" class="layui-btn layui-btn-fluid" onclick="showUploadModel()">思想汇报</button>
+                                            <button type="button" class="layui-btn layui-btn-fluid" onclick="showUploadModel()">上传思想汇报</button>
                                         </div>
                                     </div>
+                               </@shiro.hasPermission>
+
+                                <@shiro.hasPermission name="lookPdf">
+                                    <div class="layui-col-md3">
+                                        <div >
+                                            <button type="button" class="layui-btn layui-btn-fluid" onclick="lookPdf()">查看pdf资料</button>
+                                        </div>
+                                    </div>
+                                 </@shiro.hasPermission>
                                 </div>
                             </div>
                         </div>
@@ -155,10 +165,27 @@
     }
 
     function showUploadModel() {
+        var id="${Session.userInfo.id!}";
         layer.open({
             type: 1,
             content: uoloadContent,
             area: ['500px', '300px']
+        });
+
+        var uploadInst = upload.render({
+            elem: '#uploadDoc' //绑定元素
+            ,url: '/user/wordUpload' //上传接口
+            ,accept:"file"
+            ,exts:"docx"
+            ,drag:false
+            ,data: {id:id}
+            ,done: function(res){
+                //上传完毕回调
+                layer.msg(res.msg, {time: 1000});
+            }
+            ,error: function(){
+                //请求异常回调
+            }
         });
     }
 
@@ -171,7 +198,18 @@
         var tempwindow=window.open('_blank');
         tempwindow.location='/user/index.html' ;
     }
-
+    
+    function lookPdf() {
+        var pdfUrl="${Session.userInfo.pdfurl}"
+        var permissionList=JSON.parse('${Session.permissionList}');
+        for(var i=0;i<permissionList.length;i++){
+            if("downPdf"===permissionList[i]){
+                window.open("/static/pdfjs/web/viewer.html?file="+pdfUrl);
+                return;
+            }
+        }
+        window.open("/static/pdfjs/web/viewer1.html?file="+pdfUrl);
+    }
 
 </script>
 </html>

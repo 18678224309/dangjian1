@@ -9,6 +9,8 @@
         <result property="password" column="password"></result>
         <result property="roleid" column="roleid"></result>
         <result property="examnum" column="examnum"></result>
+        <result property="imgurl" column="imgurl"></result>
+        <result property="pdfurl" column="pdfurl"></result>
         <collection property="roles" ofType="com.jtfu.entity.Role">
             <id property="id" column="rid"></id>
             <result property="rolename" column="rolename"></result>
@@ -25,7 +27,7 @@
 
     <select id="findByUsername" resultMap="userMap">
        SELECT
-       u.id uid,username,name,password,sex,age,phone,u.roleid,address,imgurl,delflag,examnum,
+       u.id uid,username,name,password,sex,age,phone,u.roleid,address,imgurl,delflag,examnum,pdfurl,
        r.id rid,rolename,rolenamecn,
        m.id mid,menuname,url,res,parentid
       FROM user u

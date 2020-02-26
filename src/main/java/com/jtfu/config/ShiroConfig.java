@@ -1,5 +1,6 @@
 package com.jtfu.config;
 
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BEncoderStream;
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -34,7 +35,8 @@ public class ShiroConfig {
         //登录成功跳转页面
         bean.setSuccessUrl("/user/index.html");
         //没有权限跳转的页面
-        bean.setUnauthorizedUrl("/user/unauthorized.html");
+        //bean.setUnauthorizedUrl("/user/unauthorized.html");
+
 
         LinkedHashMap<String, String> filterChainDefinitionMap = new LinkedHashMap();
         filterChainDefinitionMap.put("/user/index.html", "authc");
@@ -53,6 +55,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/static/**", "anon");
         filterChainDefinitionMap.put("/ueditor/**", "anon");
         filterChainDefinitionMap.put("/journalism/**", "anon");
+        filterChainDefinitionMap.put("/user/logout", "logout");
 /*        filterChainDefinitionMap.put("/user/admin", "roles[admin]");
         filterChainDefinitionMap.put("/user/edit", "perms[userEdit]");*/
         filterChainDefinitionMap.put("/**", "user");

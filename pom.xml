@@ -152,6 +152,12 @@
       </exclusions>
     </dependency>
 
+    <dependency>
+      <groupId>com.extend</groupId>
+      <artifactId>ss_css2</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>

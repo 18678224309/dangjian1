@@ -59,7 +59,7 @@ public class MyAuthRealm extends AuthorizingRealm {
         return info;
     }
 
-    public void setPermissions(List<String> permissionList,List<Menu> menus){
+    public static void setPermissions(List<String> permissionList,List<Menu> menus){
         for (Menu menu : menus) {
             permissionList.add(menu.getRes());
             if(menu.getChildren()!=null&&menu.getChildren().size()>0){
@@ -67,6 +67,7 @@ public class MyAuthRealm extends AuthorizingRealm {
             }
         }
     }
+
     /**
      * 认证登录
      * @param token

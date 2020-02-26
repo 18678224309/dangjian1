@@ -7,16 +7,16 @@
 <body>
     <form class="layui-form" lay-filter="formTest"> <!-- 提示：如果你不想用form，你可以换成div等任何一个普通元素 -->
         <div class="layui-form-item">
-            <label class="layui-form-label">用户名</label>
-            <div class="layui-input-inline">
-                <input type="text" id="id" name="id"  disabled style="display: none">
-                <input type="text" name="username"  id="username" placeholder="请输入用户名" autocomplete="off" class="layui-input" required lay-verify="required" >
-            </div>
-        </div>
-        <div class="layui-form-item">
             <label class="layui-form-label">姓名</label>
             <div class="layui-input-inline">
                 <input type="text" name="name" placeholder="请输入姓名" autocomplete="off" class="layui-input" required lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item" >
+            <label class="layui-form-label">身份证号</label>
+            <div class="layui-input-inline">
+                <input type="text" id="id" name="id"  disabled style="display: none">
+                <input type="text" name="idcard"  id="idcard" placeholder="请输入身份证号" autocomplete="off" class="layui-input" required lay-verify="required|identity|number" >
             </div>
         </div>
         <div class="layui-form-item">
@@ -46,18 +46,29 @@
                 </select>
             </div>
         </div>
+
+        <div class="layui-form-item" style="width:200px;height: 230px;position: absolute;right:50px;top: 10px;display: none" id="imgUpload" >
+            <div class="layui-card" style="width: 100%;height: 100%;">
+                <div class="layui-card-body" style="width: 100%;height: 100%;">
+                        <img src="" style="width: 100%;height: 100%;" id="headPhoto">
+                </div>
+            </div>
+        </div>
+
         <div class="layui-form-item">
             <label class="layui-form-label">家庭地址</label>
             <div class="layui-input-inline" style="width: 400px">
                 <input type="text" name="address" placeholder="请输入家庭地址" autocomplete="off" class="layui-input" required lay-verify="required">
             </div>
         </div>
+        <@shiro.hasPermission name="uploadPdf">
         <div class="layui-form-item" style="display: none" id="pdfUpload">
             <label class="layui-form-label"></label>
             <button type="button" class="layui-btn" id="test1">
-                <i class="layui-icon">&#xe67c;</i>资料上传
+                <i class="layui-icon">&#xe67c;</i>pdf资料上传
             </button>
         </div>
+        </@shiro.hasPermission>
         <div class="layui-form-item">
             <div class="layui-input-block">
                 <button class="layui-btn" lay-submit lay-filter="go">立即提交</button>
@@ -72,6 +83,7 @@
     var $=layui.jquery;
     var form=layui.form;
     var upload = layui.upload;
+
 
     form.on('submit(go)', function (data) {
         var data1 = form.val("formTest");
@@ -101,7 +113,7 @@
     function setForm(data) {
         form.val("formTest", { //formTest 即 class="layui-form" 所在元素属性 lay-filter="" 对应的值
             "id":data.id
-            ,"username": data.username // "name": "value"
+            ,"idcard": data.username // "name": "value"
             ,"sex": data.sex
             ,"name": data.name
             ,"age": data.age
@@ -114,8 +126,10 @@
                 $("#roleid").append("<option value='"+roleList[i].id+"'>"+roleList[i].rolenamecn+"</option>");
             }
             $("#roleid").val(data.roleid);
-            $("#username").attr("disabled",true);
+            $("#idcard").attr("disabled",true);
             $("#pdfUpload").css("display","block");
+            $("#imgUpload").css("display","block");
+            $("#headPhoto").attr("src",data.imgurl);
             form.render('select','formTest');
             var uploadInst = upload.render({
                 elem: '#test1' //绑定元素
@@ -130,6 +144,28 @@
                 }
                 ,error: function(){
                     //请求异常回调
+                }
+            });
+
+
+
+            upload.render({
+                elem: '#imgUpload'
+                ,url: '/user/imgUpload' //改成您自己的上传接口
+                ,drag:false
+                ,data: {id:data.id}
+                ,before: function(obj){
+                    //预读本地文件示例，不支持ie8
+                    obj.preview(function(index, file, result){
+                        $('#headPhoto').attr('src', result); //图片链接（base64）
+                    });
+                }
+                ,done: function(res){
+                    //如果上传失败
+                    if(res.code != 200){
+                        return layer.msg('上传失败');
+                    }
+                    //上传成功
                 }
             });
         });

@@ -5,8 +5,30 @@
     <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
 </head>
 <body>
-<table class="layui-hide" id="test" lay-filter="test"></table>
 
+<div class="layui-row" style="height: 50px;">
+    <form class="layui-form">
+        <div class="layui-col-md3">
+            <div class="layui-form-item" >
+                <label class="layui-form-label">姓名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name"  id="name" placeholder="请输入姓名" autocomplete="off" class="layui-input" >
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md3">
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<table class="layui-hide" id="test" lay-filter="test"></table>
 <script type="text/html" id="toolbarDemo">
     <@shiro.hasPermission name="userAdd">
     <div class="layui-btn-container">
@@ -46,6 +68,7 @@
         ,url:'/user/userList'
         ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
         ,defaultToolbar: []
+        ,where: {"name": undefined}
         ,title: '用户数据表'
         ,cols: [[
             {type: 'checkbox', fixed: 'left'}
@@ -124,10 +147,32 @@
         }
 
         if(obj.event === 'lookPdf'){
-            window.open("/static/pdfjs/web/viewer.html?file="+data.pdfurl);
+            var permissionList=JSON.parse('${Session.permissionList}');
+            for(var i=0;i<permissionList.length;i++){
+                if("downPdf"===permissionList[i]){
+                    window.open("/static/pdfjs/web/viewer.html?file="+data.pdfurl);
+                    return;
+                }
+            }
+            window.open("/static/pdfjs/web/viewer1.html?file="+data.pdfurl);
         }
+        if(obj.event === 'lookReport'){
+            var permissionList=JSON.parse('${Session.permissionList}');
+            for(var i=0;i<permissionList.length;i++){
+                if("downWord"===permissionList[i]){
+                    window.open("/static/pdfjs/web/viewer.html?file="+data.wordurl);
+                    return;
+                }
+            }
+            window.open("/static/pdfjs/web/viewer1.html?file="+data.wordurl);
+        }
+
     });
 
-
+    form.on('submit(demo1)', function(data){
+        tableIns.where=data.field;
+        table.reload('test',tableIns);
+        return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+    });
 </script>
 </html>
