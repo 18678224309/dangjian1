@@ -55,6 +55,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/static/**", "anon");
         filterChainDefinitionMap.put("/ueditor/**", "anon");
         filterChainDefinitionMap.put("/journalism/**", "anon");
+        filterChainDefinitionMap.put("/examrecord/**", "anon");
         filterChainDefinitionMap.put("/user/logout", "logout");
 /*        filterChainDefinitionMap.put("/user/admin", "roles[admin]");
         filterChainDefinitionMap.put("/user/edit", "perms[userEdit]");*/

@@ -6,11 +6,54 @@
 <link href="/static/detail/tjdj201801_common.css" rel="stylesheet" type="text/css">
 <link href="/static/detail/tjdj201801_new.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css" media="all">
-
+<link rel="stylesheet" href="/static/dj.css">
 </head>
-
+<script src="/static/dj.js"></script>
 <body>
 
+<div class="layui-container" style="height: 80px">
+	<div class="layui-col-md7  Topheader">
+		<div id="logo">
+			<a>
+				<img src="/static/djimages/djlogo.png" style="width: 230px;height: 50px">
+			</a>
+		</div>
+	</div>
+	<div class="layui-col-md5  Topheader">
+
+	</div>
+</div>
+</div>
+<div id="NavBox" style="background-size:100% 100%;">
+	<div id="nav">
+		<ul>
+			<li>
+				<span class="on"><a href="/user/Home.html" class="active">首页</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="getMore(1)">纪检工作</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="getMore(2)">组织工作</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="getMore(3)">宣传工作</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="getMore(4)">统战工作</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="getMore(5)">政法工作</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="getMore(6)">群团工作</a></span>
+			</li>
+			<li>
+				<span class="on"><a  class="active" onclick="examOrder()">考试排名</a></span>
+			</li>
+		</ul>
+	</div>
+</div>
 	<div class="main">
 		<div class="container">
 			<div class="clearfix mb-20">
@@ -21,6 +64,18 @@
 				<div id="page">
 
 				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="layui-container" style="height: 175px;padding-top: 29px;padding-bottom: 29px;background-color: #ffffff;border-top: 1px solid #ddd;">
+		<div style="margin-left:35%; height: 100%;width: 30%;">
+			<div class="footer-content">
+				<p>版权所有：中共天津市委员会</p>
+				<p>承办单位：中共天津市委组织部</p>
+				<p>联系电话：022-23126600-8002</p>
+				<p>技术支持：中国经济信息社</p>
+				<p>津ICP备09015034号-7</p>
 			</div>
 		</div>
 	</div>

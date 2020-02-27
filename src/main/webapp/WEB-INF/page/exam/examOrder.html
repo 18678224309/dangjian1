@@ -1,14 +1,15 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- saved from url=(0084)http://www.tianjindangjian.gov.cn/qg/2020/0222/ff808081706742cb01706a6c08b0001d.html -->
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <!--<base target="_blank">--><base href="." target="_blank">
-    <link href="/static/djimages/tjdj201801_common.css" rel="stylesheet" type="text/css">
-    <link href="/static/djimages/tjdj201801_new.css" rel="stylesheet" type="text/css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--<base target="_self">--><base href="." target="_self">
+    <link href="/static/detail/tjdj201801_common.css" rel="stylesheet" type="text/css">
+    <link href="/static/detail/tjdj201801_new.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/static/dj.css">
 </head>
 <script src="/static/dj.js"></script>
 <body>
+
 <div class="layui-container" style="height: 80px">
     <div class="layui-col-md7  Topheader">
         <div id="logo">
@@ -53,18 +54,19 @@
     </div>
 </div>
 
+<div class="main">
     <div class="container">
-        <div class="article">
-            <div class="article-header">
-                <h2 class="article-title"><!-- title -->${model.title!}<!--/title--></h2>
-                <div class="article-subtitle"><!-- date-->时间：${model.createtime?string('yyyy-MM-dd hh:mm:ss')}<!--/date-->
-                </div>
+        <div class="clearfix mb-20">
+            <div class="items" id="items">
+
             </div>
-            <div class="article-body">
-               ${model.content!}
+
+            <div id="page">
+
             </div>
         </div>
     </div>
+</div>
 
 <div class="layui-container" style="height: 175px;padding-top: 29px;padding-bottom: 29px;background-color: #ffffff;border-top: 1px solid #ddd;">
     <div style="margin-left:35%; height: 100%;width: 30%;">
@@ -78,4 +80,41 @@
     </div>
 </div>
 </body>
+<script src="/static/layui-v2.5.6/layui/layui.all.js"></script>
+<script>
+    var laypage = layui.laypage;
+    var $=layui.jquery;
+    var params={limit:10,page:0};
+    $(function () {
+        getJourByType();
+    });
+    function getJourByType(){
+        $.get('/examrecord/examRecordByNum',params,function (r) {
+            var records = r.data.records;
+            for(var i=0;i<records.length;i++){
+                var item=records[i];
+                var items=$("#items");
+                items.append('  <div class="item clearfix">\n' +
+                    '<div class="fl w100">\n' +
+                    '                 <p>(第'+(i+1)+'名)-->'+item.username+'</p>\n' +
+                    '              <span class="date">'+item.time+'</span>\n' +
+                    '          </div>\n' +
+                    '     </div>');
+            }
+            //执行一个laypage实例
+            laypage.render({
+                elem: 'page' //注意，这里的 test1 是 ID，不用加 # 号
+                ,count: r.data.total //数据总数，从服务端得到
+                ,layout: [ 'prev', 'page', 'next','count',]
+                ,jump: function(obj, first){
+                    params.limit=obj.limit;
+                    params.page=obj.curr;
+                    if(!first){
+                        getJourByType();
+                    }
+                }
+            });
+        });
+    }
+</script>
 </html>
