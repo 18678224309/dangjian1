@@ -313,27 +313,27 @@
                     var type=records[j].type;
                     switch (type) {
                         case -1:
-                            $("#carouselItem").append('<div><img src="'+records[j].imgurl+'" style="width: 100%;height: 100%"></div>');
+                            $("#carouselItem").append('<div><a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img src="'+records[j].imgurl+'" style="width: 100%;height: 100%"></a></div>');
                             //重置轮播
                             ins.reload(options);
                             break;
                         case 1:
-                            $("#jjgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            $("#jjgz").append('<a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
                             break;
                         case 2:
-                            $("#zzgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            $("#zzgz").append('<a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
                             break;
                         case 3:
-                            $("#xcgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            $("#xcgz").append('<a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
                             break;
                         case 4:
-                            $("#tzgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            $("#tzgz").append('<a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
                             break;
                         case 5:
-                            $("#zfgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            $("#zfgz").append('<a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
                             break;
                         case 6:
-                            $("#qtgz").append('<a href="/journalism/detail.html/'+records[j].id+'"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
+                            $("#qtgz").append('<a href="/journalism/detail.html?id='+records[j].jourid+'" target="_blank"><img  style="width: 100%;height: 100%" src="'+records[j].imgurl+'" ></a>');
                             break;
 
                     }

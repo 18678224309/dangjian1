@@ -264,9 +264,9 @@ public class UserController {
                 outputStream.flush();
                 outputStream.close();
                 byId.setImgurl("/static"+imgPath+imgName);
-                userService.updateById(byId);
                 User user= (User) SecurityUtils.getSubject().getPrincipal();
                 user.setImgurl(byId.getImgurl());
+                userService.updateById(byId);
                 return R.success("上传成功");
             }
         }

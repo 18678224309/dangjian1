@@ -211,7 +211,7 @@ public class JournalismController {
                 byId.setAuthid(journalism.getAuthid());
                 byId.setContent(journalism.getContent());
                 byId.setType(journalism.getType());
-                byId.setCreatetime(new Date());
+                byId.setCreatetime(journalism.getCreatetime());
                 journalismService.updateById(byId);
                 return R.success();
             }
@@ -219,7 +219,7 @@ public class JournalismController {
         }else{
             Subject subject = SecurityUtils.getSubject();
             User user = (User) subject.getPrincipal();
-            journalism.setCreatetime(new Date());
+            journalism.setCreatetime(journalism.getCreatetime());
             journalism.setAuthid(user.getId());
             journalism.setAuth(user.getName());
             journalismService.save(journalism);

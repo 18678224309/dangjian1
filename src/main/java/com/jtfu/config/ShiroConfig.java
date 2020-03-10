@@ -1,6 +1,5 @@
 package com.jtfu.config;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BEncoderStream;
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -9,12 +8,10 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.DelegatingFilterProxy;
 
-import javax.servlet.DispatcherType;
+
 import java.util.LinkedHashMap;
-import java.util.Map;
+
 
 /**
  * @author sssr
